@@ -1,0 +1,5 @@
+(sym_lib_table
+  (lib (name MDBT50ZIGBEE-rescue)(type Legacy)(uri ${KIPRJMOD}/MDBT50ZIGBEE-rescue.lib)(options "")(descr ""))
+  (lib (name MDBT50ZIGBEEseparate-rescue)(type Legacy)(uri ${KIPRJMOD}/MDBT50ZIGBEEseparate-rescue.lib)(options "")(descr ""))
+  (lib (name ozonpot-rescue)(type Legacy)(uri ${KIPRJMOD}/ozonpot-rescue.lib)(options "")(descr ""))
+)
