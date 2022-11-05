@@ -175,7 +175,7 @@ void setup() {
 // fm6124init();
 
   gfx.init();
-  gfx.setBrightness(200);
+  gfx.setBrightness(90);
 
   int w = gfx.width();
   int h = gfx.height() >> 3;

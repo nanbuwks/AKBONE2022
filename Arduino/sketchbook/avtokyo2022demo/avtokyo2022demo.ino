@@ -5,11 +5,8 @@
 #include <lgfx/v1/panel/Panel_HUB75.hpp>
 #include <lgfx/v1/platforms/esp32/Bus_HUB75.hpp>
 
-//#define PANEL_P4
-//#define PANEL_P2
-
-#define PANEL_64x32
-//#define   PANEL_128x64
+//#define PANEL_64x32
+#define   PANEL_128x64
 //#define   PANEL_128x64_NEW
 
 struct LGFX_HUB75 : public lgfx::LGFX_Device
@@ -71,6 +68,17 @@ struct LGFX_HUB75 : public lgfx::LGFX_Device
 
       // 1秒間の更新回数を設定
       cfg.refresh_rate = 200;
+
+      // パネルの行選択の仕様に応じて指定する
+      cfg.address_mode = cfg.address_shiftreg;
+      // cfg.address_mode = cfg.address_binary;
+
+      // DMA用のタスクの優先度 (FreeRTOSのタスク機能を使用)
+      cfg.task_priority = 1;
+
+      // DMA用のタスクに使用するCPUコア設定 (FreeRTOSのタスク機能を使用)
+      cfg.task_pinned_core = PRO_CPU_NUM;
+      // cfg.task_pinned_core = APP_CPU_NUM;
 
       _bus_instance.config(cfg);
       _panel_instance.setBus(&_bus_instance);
@@ -244,14 +252,15 @@ void setup() {
       return;
   }    
   gfx.init();
-  gfx.setBrightness(128);
+  gfx.setBrightness(200);
   gfx.setColorDepth(16);
-
-//#ifdef PANEL_P4
-//  gfx.createSprite(64, 32); // パネルの面積
-// #else
-//  gfx.createSprite(128, 64); // パネルの面積
-//#endif
+/*
+#ifdef PANEL_64x32
+  gfx.createSprite(64, 32); // パネルの面積
+ #else
+  gfx.createSprite(128, 64); // パネルの面積
+#endif
+*/
 }
 
 void loop() {
