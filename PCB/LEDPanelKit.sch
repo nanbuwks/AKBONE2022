@@ -49,28 +49,6 @@ $EndComp
 Text Notes 3750 7700 0    39   ~ 0
 SENSOR_VP is GPIO36\nSENSOR_VN is GPIO39\nIO34 to IO39 are input only\nBoot mode is GPIO0,2,4,5,12,15\nwhen boot: \nGPIO0 Pulluped / when Lo to download mode\nGPIO2 Pulldowned / when GPIO0 Hi and GPIO2 Lo to serial downlaod mode \nGPIO4 detectable , but no use\nGPIO5 Pulluped / when SDIO slave mode, timing set\nGPIO12 Pulldowned / MTDI / when Hi to flash voltage to 1.8V\nGPIO15 Pulluped / MTDO / when Lo to suppress debugging log print over U0TXD
 $Comp
-L Device:Buzzer BZ1
-U 1 1 634AA290
-P 3450 900
-F 0 "BZ1" H 3602 929 50  0000 L CNN
-F 1 "Buzzer" H 3602 838 50  0000 L CNN
-F 2 "Buzzer_Beeper:Buzzer_12x9.5RM7.6" V 3425 1000 50  0001 C CNN
-F 3 "~" V 3425 1000 50  0001 C CNN
-	1    3450 900 
-	1    0    0    -1  
-$EndComp
-$Comp
-L nanbuwks:SEEED_GROVE U2
-U 1 1 634BC34D
-P 4150 1250
-F 0 "U2" H 4428 1441 79  0000 L CNN
-F 1 "SEEED_GROVE" H 4428 1306 79  0000 L CNN
-F 2 "library:Seeedstudio_Grove_110990030_Vertical_4pin_2mmpitch" H 4150 1250 79  0001 C CNN
-F 3 "" H 4150 1250 79  0001 C CNN
-	1    4150 1250
-	1    0    0    -1  
-$EndComp
-$Comp
 L nanbuwks:ESP32_DEVKIT_V1 U6
 U 1 1 6347BF6D
 P 5200 6350
@@ -112,13 +90,13 @@ LEDR1
 Text Label 4450 6200 0    39   ~ 0
 LEDB1
 Text Label 4450 6300 0    39   ~ 0
-LEDA3
+LEDD
 Text Label 4450 6400 0    39   ~ 0
-LEDA2
+LEDC
 Text Label 4450 6500 0    39   ~ 0
-LEDA1
+LEDB
 Text Label 4450 6600 0    39   ~ 0
-LEDA0
+LEDA
 Text Label 4450 6800 0    39   ~ 0
 GND
 Text Label 4450 6700 0    39   ~ 0
@@ -148,7 +126,7 @@ LEDOE
 Text Label 5700 6500 0    39   ~ 0
 LEDCLK
 Text Label 5700 6600 0    39   ~ 0
-BUZZER
+LEDE_BUZZER
 Entry Wire Line
 	4350 6800 4450 6900
 Entry Wire Line
@@ -291,148 +269,6 @@ Text Label 1850 4100 0    39   ~ 0
 3V3
 Text Label 1850 4450 0    39   ~ 0
 GND
-$Comp
-L power:GND #PWR0102
-U 1 1 636185D9
-P 3350 1000
-F 0 "#PWR0102" H 3350 750 50  0001 C CNN
-F 1 "GND" H 3350 800 50  0000 C CNN
-F 2 "" H 3350 1000 50  0001 C CNN
-F 3 "" H 3350 1000 50  0001 C CNN
-	1    3350 1000
-	-1   0    0    -1  
-$EndComp
-Wire Wire Line
-	4000 1550 3550 1550
-Wire Wire Line
-	3550 1550 3550 2250
-Wire Wire Line
-	3550 2250 3950 2250
-Wire Wire Line
-	3950 2350 3650 2350
-Wire Wire Line
-	3650 2350 3650 1650
-Wire Wire Line
-	3650 1650 4100 1650
-Wire Wire Line
-	4100 1650 4100 1550
-$Comp
-L power:GND #PWR0103
-U 1 1 636515F1
-P 3400 3150
-F 0 "#PWR0103" H 3400 2900 50  0001 C CNN
-F 1 "GND" H 3400 2950 50  0000 C CNN
-F 2 "" H 3400 3150 50  0001 C CNN
-F 3 "" H 3400 3150 50  0001 C CNN
-	1    3400 3150
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	3400 3100 3400 3150
-$Comp
-L power:GND #PWR0104
-U 1 1 6365D0D6
-P 3750 2450
-F 0 "#PWR0104" H 3750 2200 50  0001 C CNN
-F 1 "GND" H 3900 2400 50  0000 C CNN
-F 2 "" H 3750 2450 50  0001 C CNN
-F 3 "" H 3750 2450 50  0001 C CNN
-	1    3750 2450
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:+3.3V #PWR0105
-U 1 1 6365D2D2
-P 3400 2700
-F 0 "#PWR0105" H 3400 2550 50  0001 C CNN
-F 1 "+3.3V" H 3415 2873 50  0000 C CNN
-F 2 "" H 3400 2700 50  0001 C CNN
-F 3 "" H 3400 2700 50  0001 C CNN
-	1    3400 2700
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:GND #PWR0106
-U 1 1 636690C0
-P 4300 1650
-F 0 "#PWR0106" H 4300 1400 50  0001 C CNN
-F 1 "GND" H 4300 1500 50  0000 C CNN
-F 2 "" H 4300 1650 50  0001 C CNN
-F 3 "" H 4300 1650 50  0001 C CNN
-	1    4300 1650
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:+3.3V #PWR0107
-U 1 1 636692DA
-P 4550 1550
-F 0 "#PWR0107" H 4550 1400 50  0001 C CNN
-F 1 "+3.3V" H 4565 1723 50  0000 C CNN
-F 2 "" H 4550 1550 50  0001 C CNN
-F 3 "" H 4550 1550 50  0001 C CNN
-	1    4550 1550
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	4300 1550 4300 1650
-Wire Wire Line
-	4200 1600 4550 1600
-Wire Wire Line
-	4550 1600 4550 1550
-Wire Wire Line
-	4200 1550 4200 1600
-$Comp
-L nanbuwks:RTC_PCF8563module U5
-U 1 1 634B6A50
-P 4300 1950
-F 0 "U5" H 4578 1693 79  0000 L CNN
-F 1 "RTC_PCF8563module" H 4578 1558 79  0000 L CNN
-F 2 "library:RTC_PCF8563module" H 4500 2000 79  0001 C CNN
-F 3 "" H 4500 2000 79  0001 C CNN
-	1    4300 1950
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	3950 2450 3750 2450
-Wire Wire Line
-	3400 2700 3950 2700
-Wire Wire Line
-	3950 2700 3950 2550
-$Comp
-L nanbuwks:MPU-6500_Module U3
-U 1 1 636A2FB7
-P 4250 3450
-F 0 "U3" H 4528 3503 60  0000 L CNN
-F 1 "MPU-6500_Module" H 4528 3397 60  0000 L CNN
-F 2 "library:MPU-6500_GY-6500" H 4150 3450 60  0001 C CNN
-F 3 "" H 4150 3450 60  0000 C CNN
-	1    4250 3450
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	3650 2350 3650 3300
-Wire Wire Line
-	3650 3300 3850 3300
-Connection ~ 3650 2350
-Wire Wire Line
-	3850 3200 3550 3200
-Wire Wire Line
-	3550 3200 3550 2250
-Connection ~ 3550 2250
-Wire Wire Line
-	3850 3000 3400 3000
-Wire Wire Line
-	3850 3100 3400 3100
-NoConn ~ 3850 3400
-NoConn ~ 3850 3500
-NoConn ~ 3850 3600
-NoConn ~ 3850 3700
-NoConn ~ 3850 3800
-NoConn ~ 3850 3900
-Wire Wire Line
-	3050 2250 3550 2250
-Wire Wire Line
-	3650 2350 3050 2350
 Entry Wire Line
 	3050 800  2950 900 
 Entry Wire Line
@@ -440,11 +276,11 @@ Entry Wire Line
 Entry Wire Line
 	2950 2450 3050 2350
 Text Label 3100 2250 0    39   ~ 0
-SCL
+I2C_SCL
 Text Label 3100 2350 0    39   ~ 0
-SDA
-Text Label 3100 800  0    39   ~ 0
-BUZZER
+I2C_SDA
+Text Label 3200 800  0    39   ~ 0
+LEDE_BUZZER
 $Comp
 L Device:Jumper_NC_Dual JP2
 U 1 1 6378EFCE
@@ -551,8 +387,6 @@ Text Label 6200 1800 0    55   ~ 0
 RX
 Text Label 6750 1700 2    55   ~ 0
 SDMOSI_SMISO_TX2
-Wire Wire Line
-	3350 800  3050 800 
 $Comp
 L power:GND #PWR0109
 U 1 1 638F0F91
@@ -701,62 +535,6 @@ $EndComp
 Wire Wire Line
 	8000 3100 7700 3100
 $Comp
-L nanbuwks:GY-BMP_E280 U4
-U 1 1 63BB8F9F
-P 4250 4550
-F 0 "U4" H 4528 4618 79  0000 L CNN
-F 1 "GY-BMP_E280" H 4528 4483 79  0000 L CNN
-F 2 "library:GY_BMP_E280" H 4150 4600 79  0001 C CNN
-F 3 "" H 4150 4600 79  0001 C CNN
-	1    4250 4550
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	3400 2700 3400 3000
-Connection ~ 3400 2700
-$Comp
-L power:GND #PWR0112
-U 1 1 63BDACB1
-P 3400 4450
-F 0 "#PWR0112" H 3400 4200 50  0001 C CNN
-F 1 "GND" H 3400 4250 50  0000 C CNN
-F 2 "" H 3400 4450 50  0001 C CNN
-F 3 "" H 3400 4450 50  0001 C CNN
-	1    3400 4450
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	3400 4400 3400 4450
-$Comp
-L power:+3.3V #PWR0114
-U 1 1 63BDAFB8
-P 3400 4250
-F 0 "#PWR0114" H 3400 4100 50  0001 C CNN
-F 1 "+3.3V" H 3415 4423 50  0000 C CNN
-F 2 "" H 3400 4250 50  0001 C CNN
-F 3 "" H 3400 4250 50  0001 C CNN
-	1    3400 4250
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	3400 4250 3400 4300
-Wire Wire Line
-	3400 4300 3950 4300
-Wire Wire Line
-	3400 4400 3950 4400
-Wire Wire Line
-	3950 4500 3550 4500
-Wire Wire Line
-	3550 4500 3550 3200
-Connection ~ 3550 3200
-Wire Wire Line
-	3650 3300 3650 4600
-Wire Wire Line
-	3650 4600 3950 4600
-Connection ~ 3650 3300
-NoConn ~ 3950 4700
-NoConn ~ 3950 4800
-$Comp
 L nanbuwks:LM386Module_Taobao U7
 U 1 1 63C562AC
 P 6750 3500
@@ -886,13 +664,13 @@ LEDR1
 Text Label 2250 6200 0    39   ~ 0
 LEDB1
 Text Label 2250 6300 0    39   ~ 0
-LEDA3
+LEDD
 Text Label 2250 6400 0    39   ~ 0
-LEDA2
+LEDC
 Text Label 2250 6500 0    39   ~ 0
-LEDA1
+LEDB
 Text Label 2250 6600 0    39   ~ 0
-LEDA0
+LEDA
 Text Label 2250 6700 0    39   ~ 0
 GND
 Text Label 2250 6800 0    39   ~ 0
@@ -924,7 +702,7 @@ LEDOE
 Text Label 3500 6600 0    39   ~ 0
 LEDCLK
 Text Label 3500 6800 0    39   ~ 0
-BUZZER
+LEDE_BUZZER
 Entry Wire Line
 	2150 7100 2250 7200
 Entry Wire Line
@@ -1112,8 +890,6 @@ Wire Wire Line
 	7050 3500 8000 3500
 Wire Wire Line
 	7050 3600 8000 3600
-NoConn ~ 3950 2050
-NoConn ~ 3950 2150
 $Comp
 L Device:Rotary_Encoder_Switch SW1
 U 1 1 63503ED7
@@ -1203,7 +979,7 @@ Wire Wire Line
 Wire Wire Line
 	2300 2600 2850 2600
 Wire Wire Line
-	2300 2600 1600 2600
+	2300 2600 2150 2600
 Wire Wire Line
 	1600 2600 1600 2500
 Connection ~ 2300 2600
@@ -1215,20 +991,16 @@ Connection ~ 1400 3150
 Wire Wire Line
 	1400 3150 1400 3200
 $Comp
-L Device:R R5
+L Device:R R2
 U 1 1 63630521
-P 2300 2900
-F 0 "R5" H 2370 2946 50  0000 L CNN
-F 1 "10k" H 2370 2855 50  0000 L CNN
-F 2 "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder" V 2230 2900 50  0001 C CNN
-F 3 "~" H 2300 2900 50  0001 C CNN
-	1    2300 2900
-	1    0    0    -1  
+P 2000 2600
+F 0 "R2" H 2070 2646 50  0000 L CNN
+F 1 "10k" H 2070 2555 50  0000 L CNN
+F 2 "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder" V 1930 2600 50  0001 C CNN
+F 3 "~" H 2000 2600 50  0001 C CNN
+	1    2000 2600
+	0    1    1    0   
 $EndComp
-Wire Wire Line
-	2300 2600 2300 2750
-Wire Wire Line
-	2300 3050 2300 3150
 Wire Wire Line
 	2300 3150 2050 3150
 Wire Bus Line
@@ -1280,34 +1052,6 @@ Wire Wire Line
 Connection ~ 1600 1750
 Connection ~ 1600 1450
 Wire Wire Line
-	1600 1450 1850 1450
-$Comp
-L Device:R R1
-U 1 1 636E3D9F
-P 2000 1450
-F 0 "R1" H 2070 1496 50  0000 L CNN
-F 1 "330" H 2070 1405 50  0000 L CNN
-F 2 "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder" V 1930 1450 50  0001 C CNN
-F 3 "~" H 2000 1450 50  0001 C CNN
-	1    2000 1450
-	0    1    1    0   
-$EndComp
-Wire Wire Line
-	2150 1450 2200 1450
-Wire Wire Line
-	1600 1750 1850 1750
-$Comp
-L Device:R R2
-U 1 1 636F3BAC
-P 2000 1750
-F 0 "R2" H 2070 1796 50  0000 L CNN
-F 1 "330" H 2070 1705 50  0000 L CNN
-F 2 "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder" V 1930 1750 50  0001 C CNN
-F 3 "~" H 2000 1750 50  0001 C CNN
-	1    2000 1750
-	0    1    1    0   
-$EndComp
-Wire Wire Line
 	1500 1850 1000 1850
 $Comp
 L power:+3.3V #PWR0123
@@ -1343,10 +1087,10 @@ F 3 "" H 2550 1000 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Device:R R6
+L Device:R R5
 U 1 1 637363D2
 P 2550 1150
-F 0 "R6" H 2620 1196 50  0000 L CNN
+F 0 "R5" H 2620 1196 50  0000 L CNN
 F 1 "10k" H 2620 1105 50  0000 L CNN
 F 2 "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder" V 2480 1150 50  0001 C CNN
 F 3 "~" H 2550 1150 50  0001 C CNN
@@ -1359,8 +1103,6 @@ Connection ~ 2550 1750
 Wire Wire Line
 	2550 1750 2850 1750
 Wire Wire Line
-	2150 1750 2550 1750
-Wire Wire Line
 	2200 1300 2200 1450
 Connection ~ 2200 1450
 Wire Wire Line
@@ -1369,59 +1111,59 @@ NoConn ~ 2550 6900
 $Comp
 L nanbuwks:microSD_SPI_Module U10
 U 1 1 637DF926
-P 9200 4700
-F 0 "U10" H 9678 4718 79  0000 L CNN
-F 1 "microSD_SPI_Module" H 9678 4583 79  0000 L CNN
-F 2 "library:microSD_module_LCTechInc" H 9200 4700 79  0001 C CNN
-F 3 "" H 9200 4700 79  0001 C CNN
-	1    9200 4700
+P 9200 4500
+F 0 "U10" H 9678 4518 79  0000 L CNN
+F 1 "microSD_SPI_Module" H 9678 4383 79  0000 L CNN
+F 2 "library:microSD_module_LCTechInc" H 9200 4500 79  0001 C CNN
+F 3 "" H 9200 4500 79  0001 C CNN
+	1    9200 4500
 	1    0    0    -1  
 $EndComp
 Entry Wire Line
-	8100 4500 8200 4600
+	8100 4300 8200 4400
+Entry Wire Line
+	8100 4400 8200 4500
 Entry Wire Line
 	8100 4600 8200 4700
 Entry Wire Line
-	8100 4800 8200 4900
-Entry Wire Line
-	8100 4700 8200 4800
+	8100 4500 8200 4600
+Wire Wire Line
+	8200 4400 8850 4400
+Wire Wire Line
+	8200 4500 8850 4500
 Wire Wire Line
 	8200 4600 8850 4600
 Wire Wire Line
 	8200 4700 8850 4700
-Wire Wire Line
-	8200 4800 8850 4800
-Wire Wire Line
-	8200 4900 8850 4900
 $Comp
 L power:GND #PWR0125
 U 1 1 6384A573
-P 8850 5000
-F 0 "#PWR0125" H 8850 4750 50  0001 C CNN
-F 1 "GND" H 8855 4827 50  0000 C CNN
-F 2 "" H 8850 5000 50  0001 C CNN
-F 3 "" H 8850 5000 50  0001 C CNN
-	1    8850 5000
+P 8850 4800
+F 0 "#PWR0125" H 8850 4550 50  0001 C CNN
+F 1 "GND" H 8855 4627 50  0000 C CNN
+F 2 "" H 8850 4800 50  0001 C CNN
+F 3 "" H 8850 4800 50  0001 C CNN
+	1    8850 4800
 	1    0    0    -1  
 $EndComp
 $Comp
 L power:+3.3V #PWR0126
 U 1 1 6384B9DB
-P 8600 4500
-F 0 "#PWR0126" H 8600 4350 50  0001 C CNN
-F 1 "+3.3V" H 8615 4673 50  0000 C CNN
-F 2 "" H 8600 4500 50  0001 C CNN
-F 3 "" H 8600 4500 50  0001 C CNN
-	1    8600 4500
+P 8600 4300
+F 0 "#PWR0126" H 8600 4150 50  0001 C CNN
+F 1 "+3.3V" H 8615 4473 50  0000 C CNN
+F 2 "" H 8600 4300 50  0001 C CNN
+F 3 "" H 8600 4300 50  0001 C CNN
+	1    8600 4300
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	8600 4500 8850 4500
-Text Label 8250 4600 0    39   ~ 0
+	8600 4300 8850 4300
+Text Label 8250 4400 0    39   ~ 0
 CS
-Text Label 8250 4700 0    39   ~ 0
+Text Label 8250 4500 0    39   ~ 0
 SDMOSI_SMISO_TX2
-Text Label 8250 4900 0    39   ~ 0
+Text Label 8250 4700 0    39   ~ 0
 SDMISO_SMOSI_RX2
 Text Label 5700 5500 0    39   ~ 0
 SDMOSI_SMISO_TX2
@@ -1487,7 +1229,7 @@ Wire Wire Line
 Connection ~ 1200 4500
 Wire Wire Line
 	1200 4500 1200 4550
-Text Label 8250 4800 0    39   ~ 0
+Text Label 8250 4600 0    39   ~ 0
 SCLK
 Text Label 7800 4850 0    39   ~ 0
 LEDG1
@@ -1498,7 +1240,7 @@ LEDB2
 Text Label 6800 5050 0    39   ~ 0
 LEDR2
 Text Label 7800 5250 0    39   ~ 0
-LEDA1
+LEDB
 Text Label 6800 4950 0    39   ~ 0
 LEDB1
 Text Label 6800 5550 0    39   ~ 0
@@ -1506,24 +1248,407 @@ LEDOE
 Text Label 6800 4850 0    39   ~ 0
 LEDR1
 Text Label 6800 5250 0    39   ~ 0
-LEDA0
+LEDA
 Text Label 6800 5450 0    39   ~ 0
 LEDCLK
 Text Label 6800 5350 0    39   ~ 0
-LEDA2
+LEDC
 Text Label 7800 5350 0    39   ~ 0
-LEDA3
-Wire Wire Line
-	7750 4950 7750 5150
+LEDD
 Wire Wire Line
 	7700 5050 8000 5050
 Text Label 7800 5450 0    39   ~ 0
 LEDLAT
+Text Label 6750 2300 2    55   ~ 0
+SDMISO_SMOSI_RX2
 Wire Wire Line
-	7700 5150 7750 5150
-Connection ~ 7750 5150
+	1850 2600 1600 2600
 Wire Wire Line
-	7750 5150 7750 5550
+	2300 2600 2300 3150
+$Comp
+L Device:CP C3
+U 1 1 635AABE4
+P 1100 5200
+F 0 "C3" H 1218 5246 50  0000 L CNN
+F 1 "330uF" H 1218 5155 50  0000 L CNN
+F 2 "Capacitor_THT:CP_Radial_D8.0mm_P5.00mm" H 1138 5050 50  0001 C CNN
+F 3 "~" H 1100 5200 50  0001 C CNN
+	1    1100 5200
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5V #PWR0129
+U 1 1 635AC474
+P 1100 5050
+F 0 "#PWR0129" H 1100 4900 50  0001 C CNN
+F 1 "+5V" H 1115 5223 50  0000 C CNN
+F 2 "" H 1100 5050 50  0001 C CNN
+F 3 "" H 1100 5050 50  0001 C CNN
+	1    1100 5050
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0130
+U 1 1 635AD0B8
+P 1100 5350
+F 0 "#PWR0130" H 1100 5100 50  0001 C CNN
+F 1 "GND" H 1100 5150 50  0000 C CNN
+F 2 "" H 1100 5350 50  0001 C CNN
+F 3 "" H 1100 5350 50  0001 C CNN
+	1    1100 5350
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1600 1450 2200 1450
+Wire Wire Line
+	1600 1750 2550 1750
+$Comp
+L nanbuwks:SEEED_GROVE U2
+U 1 1 634BC34D
+P 4300 1250
+F 0 "U2" H 4400 1750 79  0000 L CNN
+F 1 "SEEED_GROVE" H 3900 1900 79  0000 L CNN
+F 2 "library:Seeedstudio_Grove_110990030_Vertical_4pin_2mmpitch" H 4300 1250 79  0001 C CNN
+F 3 "" H 4300 1250 79  0001 C CNN
+	1    4300 1250
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4150 1800 4150 1550
+Wire Wire Line
+	3700 1800 4150 1800
+$Comp
+L power:GND #PWR0131
+U 1 1 63601622
+P 3650 1400
+F 0 "#PWR0131" H 3650 1150 50  0001 C CNN
+F 1 "GND" H 3650 1250 50  0000 C CNN
+F 2 "" H 3650 1400 50  0001 C CNN
+F 3 "" H 3650 1400 50  0001 C CNN
+	1    3650 1400
+	-1   0    0    -1  
+$EndComp
+$Comp
+L Device:LED D1
+U 1 1 63600C76
+P 3450 1250
+F 0 "D1" V 3489 1132 50  0000 R CNN
+F 1 "LED" V 3398 1132 50  0000 R CNN
+F 2 "LED_THT:LED_D5.0mm" H 3450 1250 50  0001 C CNN
+F 3 "~" H 3450 1250 50  0001 C CNN
+	1    3450 1250
+	0    -1   -1   0   
+$EndComp
+$Comp
+L Device:R R1
+U 1 1 636E3D9F
+P 3450 950
+F 0 "R1" H 3520 996 50  0000 L CNN
+F 1 "330" H 3520 905 50  0000 L CNN
+F 2 "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder" V 3380 950 50  0001 C CNN
+F 3 "~" H 3450 950 50  0001 C CNN
+	1    3450 950 
+	1    0    0    -1  
+$EndComp
+NoConn ~ 4100 2150
+NoConn ~ 4100 2050
+NoConn ~ 4100 4800
+NoConn ~ 4100 4700
+Connection ~ 3800 3300
+Wire Wire Line
+	3800 4600 4100 4600
+Wire Wire Line
+	3800 3300 3800 4600
+Connection ~ 3700 3200
+Wire Wire Line
+	3700 4500 3700 3200
+Wire Wire Line
+	4100 4500 3700 4500
+Wire Wire Line
+	3550 4400 4100 4400
+Wire Wire Line
+	3550 4400 3550 4450
+$Comp
+L power:GND #PWR0112
+U 1 1 63BDACB1
+P 3550 4450
+F 0 "#PWR0112" H 3550 4200 50  0001 C CNN
+F 1 "GND" H 3550 4250 50  0000 C CNN
+F 2 "" H 3550 4450 50  0001 C CNN
+F 3 "" H 3550 4450 50  0001 C CNN
+	1    3550 4450
+	1    0    0    -1  
+$EndComp
+$Comp
+L nanbuwks:GY-BMP_E280 U4
+U 1 1 63BB8F9F
+P 4400 4550
+F 0 "U4" H 4678 4618 79  0000 L CNN
+F 1 "GY-BMP_E280" H 4678 4483 79  0000 L CNN
+F 2 "library:GY_BMP_E280" H 4300 4600 79  0001 C CNN
+F 3 "" H 4300 4600 79  0001 C CNN
+	1    4400 4550
+	1    0    0    -1  
+$EndComp
+NoConn ~ 4000 3900
+NoConn ~ 4000 3800
+NoConn ~ 4000 3700
+NoConn ~ 4000 3600
+NoConn ~ 4000 3500
+NoConn ~ 4000 3400
+Wire Wire Line
+	4000 3100 3550 3100
+Wire Wire Line
+	4000 3000 3550 3000
+Connection ~ 3700 2250
+Wire Wire Line
+	3700 3200 3700 2250
+Wire Wire Line
+	4000 3200 3700 3200
+Connection ~ 3800 2350
+Wire Wire Line
+	3800 3300 4000 3300
+Wire Wire Line
+	3800 2350 3800 3300
+$Comp
+L nanbuwks:MPU-6500_Module U3
+U 1 1 636A2FB7
+P 4400 3450
+F 0 "U3" H 4678 3503 60  0000 L CNN
+F 1 "MPU-6500_Module" H 4678 3397 60  0000 L CNN
+F 2 "library:MPU-6500_GY-6500" H 4300 3450 60  0001 C CNN
+F 3 "" H 4300 3450 60  0000 C CNN
+	1    4400 3450
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4100 2450 3900 2450
+$Comp
+L nanbuwks:RTC_PCF8563module U5
+U 1 1 634B6A50
+P 4450 1950
+F 0 "U5" H 4728 1693 79  0000 L CNN
+F 1 "RTC_PCF8563module" H 4728 1558 79  0000 L CNN
+F 2 "library:RTC_PCF8563module" H 4650 2000 79  0001 C CNN
+F 3 "" H 4650 2000 79  0001 C CNN
+	1    4450 1950
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4350 1550 4350 1600
+Wire Wire Line
+	4450 1550 4450 1650
+$Comp
+L power:GND #PWR0106
+U 1 1 636690C0
+P 4450 1650
+F 0 "#PWR0106" H 4450 1400 50  0001 C CNN
+F 1 "GND" H 4450 1500 50  0000 C CNN
+F 2 "" H 4450 1650 50  0001 C CNN
+F 3 "" H 4450 1650 50  0001 C CNN
+	1    4450 1650
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0104
+U 1 1 6365D0D6
+P 3900 2450
+F 0 "#PWR0104" H 3900 2200 50  0001 C CNN
+F 1 "GND" H 4050 2400 50  0000 C CNN
+F 2 "" H 3900 2450 50  0001 C CNN
+F 3 "" H 3900 2450 50  0001 C CNN
+	1    3900 2450
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3550 3100 3550 3150
+$Comp
+L power:GND #PWR0103
+U 1 1 636515F1
+P 3550 3150
+F 0 "#PWR0103" H 3550 2900 50  0001 C CNN
+F 1 "GND" H 3550 2950 50  0000 C CNN
+F 2 "" H 3550 3150 50  0001 C CNN
+F 3 "" H 3550 3150 50  0001 C CNN
+	1    3550 3150
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4250 1900 4250 1550
+Wire Wire Line
+	3800 1900 4250 1900
+Wire Wire Line
+	3800 2350 3800 1900
+Wire Wire Line
+	4100 2350 3800 2350
+Wire Wire Line
+	3700 2250 4100 2250
+Wire Wire Line
+	3700 1800 3700 2250
+Wire Wire Line
+	3050 2250 3700 2250
+Wire Wire Line
+	3050 2350 3800 2350
+Wire Wire Line
+	3300 4300 4100 4300
+$Comp
+L power:+5V #PWR0114
+U 1 1 635EF6EF
+P 5700 1000
+F 0 "#PWR0114" H 5700 850 50  0001 C CNN
+F 1 "+5V" H 5715 1173 50  0000 C CNN
+F 2 "" H 5700 1000 50  0001 C CNN
+F 3 "" H 5700 1000 50  0001 C CNN
+	1    5700 1000
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:Jumper_NC_Dual JP4
+U 1 1 635F22BF
+P 5250 1100
+F 0 "JP4" H 5250 1339 50  0000 C CNN
+F 1 "Jumper_NC_Dual" H 5250 1248 50  0000 C CNN
+F 2 "Jumper:SolderJumper-3_P1.3mm_Bridged12_Pad1.0x1.5mm" H 5250 1100 50  0001 C CNN
+F 3 "~" H 5250 1100 50  0001 C CNN
+	1    5250 1100
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5500 1100 5700 1100
+Wire Wire Line
+	5700 1100 5700 1000
+Wire Wire Line
+	4850 1000 4850 1100
+Wire Wire Line
+	4850 1100 5000 1100
+Wire Wire Line
+	3300 2800 3300 4300
+Connection ~ 3550 2800
+Wire Wire Line
+	3550 2800 3550 3000
+Wire Wire Line
+	3550 2800 3300 2800
+Wire Wire Line
+	4100 2550 4100 2800
+Wire Wire Line
+	4100 2800 3550 2800
+Wire Wire Line
+	4350 1600 5250 1600
+Wire Wire Line
+	5250 1200 5250 1600
+$Comp
+L power:+3.3V #PWR0107
+U 1 1 636692DA
+P 4850 1000
+F 0 "#PWR0107" H 4850 850 50  0001 C CNN
+F 1 "+3.3V" H 4865 1173 50  0000 C CNN
+F 2 "" H 4850 1000 50  0001 C CNN
+F 3 "" H 4850 1000 50  0001 C CNN
+	1    4850 1000
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+3.3V #PWR0105
+U 1 1 635E1AB1
+P 3300 2800
+F 0 "#PWR0105" H 3300 2650 50  0001 C CNN
+F 1 "+3.3V" H 3315 2973 50  0000 C CNN
+F 2 "" H 3300 2800 50  0001 C CNN
+F 3 "" H 3300 2800 50  0001 C CNN
+	1    3300 2800
+	1    0    0    -1  
+$EndComp
+Connection ~ 3300 2800
+Wire Wire Line
+	7750 4950 7750 5550
+Entry Wire Line
+	8100 5550 8200 5650
+Text Label 8200 5650 0    39   ~ 0
+LEDE_BUZZER
+Wire Wire Line
+	7700 5150 8000 5150
+$Comp
+L Device:R R6
+U 1 1 635D6E63
+P 3750 950
+F 0 "R6" H 3820 996 50  0000 L CNN
+F 1 "10k" H 3820 905 50  0000 L CNN
+F 2 "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder" V 3680 950 50  0001 C CNN
+F 3 "~" H 3750 950 50  0001 C CNN
+	1    3750 950 
+	1    0    0    -1  
+$EndComp
+Connection ~ 3450 800 
+Wire Wire Line
+	3450 800  3750 800 
+Wire Wire Line
+	3750 1100 3750 1400
+Wire Wire Line
+	3750 1400 3650 1400
+Connection ~ 3650 1400
+Wire Wire Line
+	3650 1400 3450 1400
+Connection ~ 3150 800 
+Wire Wire Line
+	3150 800  3450 800 
+Wire Wire Line
+	3150 800  3050 800 
+$Comp
+L Device:Buzzer BZ1
+U 1 1 634AA290
+P 3250 1600
+F 0 "BZ1" H 3402 1629 50  0000 L CNN
+F 1 "Buzzer" H 3402 1538 50  0000 L CNN
+F 2 "Buzzer_Beeper:Buzzer_12x9.5RM7.6" V 3225 1700 50  0001 C CNN
+F 3 "~" V 3225 1700 50  0001 C CNN
+	1    3250 1600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3150 1700 3150 1800
+Wire Wire Line
+	3150 1400 3150 1500
+$Comp
+L Device:Jumper JP3
+U 1 1 63646070
+P 3150 1100
+F 0 "JP3" V 3050 900 50  0000 L CNN
+F 1 "Jumper" V 3150 900 50  0000 L CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 3150 1100 50  0001 C CNN
+F 3 "~" H 3150 1100 50  0001 C CNN
+	1    3150 1100
+	0    1    1    0   
+$EndComp
+$Comp
+L power:GND #PWR0102
+U 1 1 636185D9
+P 3150 1800
+F 0 "#PWR0102" H 3150 1550 50  0001 C CNN
+F 1 "GND" H 3150 1600 50  0000 C CNN
+F 2 "" H 3150 1800 50  0001 C CNN
+F 3 "" H 3150 1800 50  0001 C CNN
+	1    3150 1800
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:Jumper JP5
+U 1 1 635D09A5
+P 8850 5650
+F 0 "JP5" V 8750 5450 50  0000 L CNN
+F 1 "Jumper" V 8850 5450 50  0000 L CNN
+F 2 "Jumper:SolderJumper-2_P1.3mm_Open_TrianglePad1.0x1.5mm" H 8850 5650 50  0001 C CNN
+F 3 "~" H 8850 5650 50  0001 C CNN
+	1    8850 5650
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8200 5650 8550 5650
+Wire Wire Line
+	8000 5150 8000 5100
+Wire Wire Line
+	8000 5100 9150 5100
+Wire Wire Line
+	9150 5100 9150 5650
 Wire Bus Line
 	10400 750  10400 2850
 Wire Bus Line
@@ -1544,6 +1669,4 @@ Wire Bus Line
 	2150 5000 2150 7100
 Wire Bus Line
 	3850 5000 3850 6800
-Text Label 6750 2300 2    55   ~ 0
-SDMISO_SMOSI_RX2
 $EndSCHEMATC
