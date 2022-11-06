@@ -1,11 +1,19 @@
 #define LGFX_USE_V1
+#include <SPIFFS.h>
 #include <LovyanGFX.hpp>
-
 #include <lgfx/v1/panel/Panel_HUB75.hpp>
 #include <lgfx/v1/platforms/esp32/Bus_HUB75.hpp>
 
-#define PANEL_64x32
-// #define PANEL_128x64
+
+#include <Wire.h>
+#include <RTClib.h>
+
+//#define PANEL_64x32
+#define PANEL_128x64
+
+
+
+RTC_PCF8563 RTC;
 
 struct LGFX_HUB75 : public lgfx::LGFX_Device
 {
@@ -21,7 +29,7 @@ struct LGFX_HUB75 : public lgfx::LGFX_Device
 //*/
   };
 
-  Panel_Custom_HUB75 _panel_instance;
+Panel_Custom_HUB75 _panel_instance;
   lgfx::Bus_HUB75 _bus_instance;
 
   LGFX_HUB75(void)
@@ -101,7 +109,7 @@ some panel has no D,E line, please set RGB configuration
       //cfg.address_mode = cfg.address_binary;
 
       // LEDドライバの初期化コマンドを指定する
-      // cfg.initialize_mode = cfg.initialize_none;
+      //cfg.initialize_mode = cfg.initialize_none;
       cfg.initialize_mode = cfg.initialize_fm6124;
 
       // DMA用のタスクの優先度 (FreeRTOSのタスク機能を使用)
@@ -145,34 +153,92 @@ some panel has no D,E line, please set RGB configuration
 
 LGFX_HUB75 gfx;
 
-#define CLK_PULSE          digitalWrite(cfg.pin_clk, HIGH); digitalWrite(cfg.pin_clk, LOW);
+//===========================================================
+//	clearLED() ： clear LED panel
+//===========================================================
+void clearLED()
+{
+  gfx.setFont(&fonts::Font0);
+  gfx.setCursor(0, 0);
+  gfx.fillScreen(TFT_BLACK);
+  gfx.setTextWrap(false);
+  gfx.setTextScroll(true);
+  gfx.setTextColor(TFT_WHITE, TFT_BLACK);
+  gfx.setTextSize(1.0, 1.0);
+
+}
+
+/* font size(y)
+TomThumb 5dot
+Font0 8dot
+Font2 10dot
+Font4 16dot
+Font6 37dot
+Font7 48dot
+Font8 about 70dot
+FreeFont0 8dot
+FreeSansBold9pt7b 13dot
+FreeSerifBoldItalic18pt7b 26dot
+*/
+void drawtime()
+{
+  int pos_y;
+  int diff;
+  int center_x;
+  char buffer[64];
+  clearLED();
+#if defined(PANEL_64x32)
+  const lgfx::IFont* font1 = &fonts::Font2;
+  const lgfx::IFont* font2 = &fonts::Font0;
+  const lgfx::IFont* font3 = &fonts::TomThumb;
+  float textsizex=1.0;
+  float textsizey=1.0;
+  gfx.setTextDatum( textdatum_t::baseline_center );
+#else
+  const lgfx::IFont* font1 = &fonts::FreeSerifBoldItalic18pt7b;
+  const lgfx::IFont* font2 = &fonts::Font4;
+  const lgfx::IFont* font3 = &fonts::Font2;
+  float textsizex=1.0;
+  float textsizey=1.0;
+  gfx.setTextDatum( textdatum_t::baseline_center );
+#endif
+  gfx.setFont(font1);
+  gfx.setTextSize(textsizex, textsizey);
+  gfx.setTextWrap(false);
+  gfx.setTextColor(0xAAAAFFU, TFT_BLACK);
+
+  
+  if (!RTC.isrunning()) {
+    gfx.print("RTC not find");
+    Serial.println("RTC not find");
+  }else{
+    DateTime now = RTC.now();
+    gfx.setFont(font1);
+    sprintf(buffer,"%02d:%02d:%02d",now.hour(),now.minute(),now.second());
+    Serial.print(buffer);
+    Serial.print(" ");
+    gfx.drawString(buffer,  gfx.width() / 2,  gfx.height() / 2);
+    gfx.setFont(font2);
+    gfx.setTextColor(TFT_BLUE);
+    sprintf(buffer,"%02d/%02d/%02d",now.year(),now.month(),now.day());
+    Serial.print(buffer);
+    Serial.println("");
+    gfx.drawString(buffer,  gfx.width() / 2,  gfx.height()*0.9 );
+  }
+}
 
 void setup() {
-
-// LEDドライバのレジスタ設定
-//fm6124init();
-
+  Serial.begin(115200);
   gfx.init();
-  gfx.setBrightness(255);
-
-  int w = gfx.width();
-  int h = gfx.height() >> 3;
-  for (int x = 0; x < w; ++x) {
-    int c1 = (x << 8) / w;
-    int c2 = 255 - c1;
-    gfx.drawFastVLine(x, 0 * h, h, gfx.color565(c1,  0,  0));
-    gfx.drawFastVLine(x, 1 * h, h, gfx.color565(c2,  0,  0));
-    gfx.drawFastVLine(x, 2 * h, h, gfx.color565( 0, c1,  0));
-    gfx.drawFastVLine(x, 3 * h, h, gfx.color565( 0, c2,  0));
-    gfx.drawFastVLine(x, 4 * h, h, gfx.color565( 0,  0, c1));
-    gfx.drawFastVLine(x, 5 * h, h, gfx.color565( 0,  0, c2));
-    gfx.drawFastVLine(x, 6 * h, h, gfx.color565(c1, c1, c1));
-    gfx.drawFastVLine(x, 7 * h, h, gfx.color565(c2, c2, c2));
-  }
-  delay(2000);
+  gfx.setBrightness(200);
+  gfx.setColorDepth(16);
+  Wire.begin(22,21);
+  RTC.begin();
+ // RTC.adjust(DateTime(2022, 11, 6, 20, 36, 20));
 }
 
 void loop() {
-  delay(16);
-  gfx.fillCircle(rand()%gfx.width(), rand()%gfx.height(), (rand()&7)+3, rand());
+
+  drawtime();
+  delay(1000);
 }
