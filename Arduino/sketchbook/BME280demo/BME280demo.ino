@@ -1,15 +1,31 @@
 #define LGFX_USE_V1
+#include <SPIFFS.h>
 #include <LovyanGFX.hpp>
-
 #include <lgfx/v1/panel/Panel_HUB75.hpp>
 #include <lgfx/v1/platforms/esp32/Bus_HUB75.hpp>
+
+
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BME280.h>
+
+#define PANEL_64x32
+// #define PANEL_128x64
+
+
+
+Adafruit_BME280 bme;
+
+float temp;
+float pressure;
+float humi;
 
 struct LGFX_HUB75 : public lgfx::LGFX_Device
 {
   struct Panel_Custom_HUB75 : public lgfx::Panel_HUB75
   {
 // X 座標が8ドット単位で逆順になる場合の対策が必要な場合はこのoverrideを有効にする
-/*
+
     void _draw_pixel_inner(uint_fast16_t x, uint_fast16_t y, uint32_t rawcolor) override
     {
       Panel_HUB75::_draw_pixel_inner((x & 8) ? x : (x ^ 7), y, rawcolor);
@@ -18,7 +34,7 @@ struct LGFX_HUB75 : public lgfx::LGFX_Device
 //*/
   };
 
-  Panel_Custom_HUB75 _panel_instance;
+Panel_Custom_HUB75 _panel_instance;
   lgfx::Bus_HUB75 _bus_instance;
 
   LGFX_HUB75(void)
@@ -94,12 +110,12 @@ some panel has no D,E line, please set RGB configuration
       cfg.refresh_rate = 200;
 
       // パネルの行選択の仕様に応じて指定する
-      cfg.address_mode = cfg.address_shiftreg;
-      //cfg.address_mode = cfg.address_binary;
+      // cfg.address_mode = cfg.address_shiftreg;
+      cfg.address_mode = cfg.address_binary;
 
       // LEDドライバの初期化コマンドを指定する
-      // cfg.initialize_mode = cfg.initialize_none;
-      cfg.initialize_mode = cfg.initialize_fm6124;
+      cfg.initialize_mode = cfg.initialize_none;
+      // cfg.initialize_mode = cfg.initialize_fm6124;
 
       // DMA用のタスクの優先度 (FreeRTOSのタスク機能を使用)
       cfg.task_priority = 1;
@@ -117,8 +133,8 @@ some panel has no D,E line, please set RGB configuration
 
       // ここでパネルサイズを指定する
       // 複数枚並べる場合は全体の縦横サイズを指定
-      cfg.memory_width  = cfg.panel_width  = 128;
-      cfg.memory_height = cfg.panel_height = 64;
+      cfg.memory_width  = cfg.panel_width  = 64;
+      cfg.memory_height = cfg.panel_height = 32;
 
       _panel_instance.config(cfg);
       setPanel(&_panel_instance);
@@ -142,34 +158,96 @@ some panel has no D,E line, please set RGB configuration
 
 LGFX_HUB75 gfx;
 
-#define CLK_PULSE          digitalWrite(cfg.pin_clk, HIGH); digitalWrite(cfg.pin_clk, LOW);
+//===========================================================
+//	clearLED() ： clear LED panel
+//===========================================================
+void clearLED()
+{
+  gfx.setFont(&fonts::Font0);
+  gfx.setCursor(0, 0);
+  gfx.fillScreen(TFT_BLACK);
+  gfx.setTextWrap(false);
+  gfx.setTextScroll(true);
+  gfx.setTextColor(TFT_WHITE, TFT_BLACK);
+  gfx.setTextSize(1.0, 1.0);
+
+}
+
+
+
+//===========================================================
+//	drawLGFX() ： LCD Draw Test
+//===========================================================
+void drawenvironment()
+{
+  int pos_y;
+  int diff;
+  
+  temp=bme.readTemperature();
+  pressure=bme.readPressure() / 100.0F;
+  humi=bme.readHumidity();
+
+
+  
+  clearLED();
+#if defined(PANEL_64x32)
+  const lgfx::IFont* font1 = &fonts::lgfxJapanGothicP_16;
+  const lgfx::IFont* font2 = &fonts::lgfxJapanGothicP_12;
+  const lgfx::IFont* font3 = &fonts::lgfxJapanGothicP_8;
+  pos_y = -2;
+  diff = 18;
+#else
+  const lgfx::IFont* font1 = &fonts::lgfxJapanGothicP_32;
+  const lgfx::IFont* font2 = &fonts::lgfxJapanGothicP_24;
+  const lgfx::IFont* font3 = &fonts::lgfxJapanGothicP_16;
+  pos_y = -5;
+  diff = 40;
+#endif
+  gfx.setFont(font1);
+  gfx.setTextSize(1.0, 1.0);
+  gfx.setTextWrap(false);
+  gfx.setTextColor(TFT_RED, TFT_BLACK);
+  gfx.setCursor(0, pos_y);
+  gfx.printf("%3.0f",temp);
+  gfx.setFont(font3);
+  gfx.setCursor(gfx.getCursorX(), pos_y+diff*0.5);
+  gfx.setTextSize(0.5, 0.5);
+  gfx.printf("o");
+  gfx.setTextSize(1.0, 1.0);
+  gfx.printf("C");
+  gfx.setFont(font1);
+  gfx.setCursor(diff * 1.5, pos_y);
+  gfx.setTextColor(TFT_BLUE);
+  gfx.printf("%3.0f",humi);
+  gfx.setFont(font3);
+  gfx.setCursor(gfx.getCursorX(), pos_y+diff*0.5);
+  gfx.print("%");
+  gfx.setCursor(0, pos_y += diff);
+  gfx.setFont(font2);
+  gfx.setTextSize(1.0, 1.0);
+  gfx.setTextColor(TFT_GREEN);
+  gfx.printf("  %4.0f",pressure);
+  gfx.setFont(font3);
+  gfx.setCursor(gfx.getCursorX(), pos_y+diff*0.4);
+  gfx.print("hPa");
+}
 
 void setup() {
-
-// LEDドライバのレジスタ設定
-//fm6124init();
-
+  Serial.begin(115200);
   gfx.init();
-  gfx.setBrightness(255);
-
-  int w = gfx.width();
-  int h = gfx.height() >> 3;
-  for (int x = 0; x < w; ++x) {
-    int c1 = (x << 8) / w;
-    int c2 = 255 - c1;
-    gfx.drawFastVLine(x, 0 * h, h, gfx.color565(c1,  0,  0));
-    gfx.drawFastVLine(x, 1 * h, h, gfx.color565(c2,  0,  0));
-    gfx.drawFastVLine(x, 2 * h, h, gfx.color565( 0, c1,  0));
-    gfx.drawFastVLine(x, 3 * h, h, gfx.color565( 0, c2,  0));
-    gfx.drawFastVLine(x, 4 * h, h, gfx.color565( 0,  0, c1));
-    gfx.drawFastVLine(x, 5 * h, h, gfx.color565( 0,  0, c2));
-    gfx.drawFastVLine(x, 6 * h, h, gfx.color565(c1, c1, c1));
-    gfx.drawFastVLine(x, 7 * h, h, gfx.color565(c2, c2, c2));
+  gfx.setBrightness(200);
+  gfx.setColorDepth(16);
+  bool status;
+  Wire.begin(22,21);
+  status = bme.begin(0x76);  
+  while (!status) {
+    Serial.println("BME280 fail!");
+    delay(1000);
   }
-  delay(2000);
 }
 
 void loop() {
-  delay(16);
-  gfx.fillCircle(rand()%gfx.width(), rand()%gfx.height(), (rand()&7)+3, rand());
+
+  drawenvironment();
+  delay(5000);
 }

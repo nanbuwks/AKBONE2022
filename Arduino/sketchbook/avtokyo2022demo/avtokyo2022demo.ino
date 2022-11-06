@@ -10,8 +10,8 @@
 #include <Adafruit_BME280.h>
 
 
-//#define PANEL_64x32
-#define   PANEL_128x64
+#define PANEL_64x32
+//#define   PANEL_128x64
 //#define   PANEL_128x64_NEW
 Adafruit_BME280 bme;
 
@@ -24,7 +24,7 @@ struct LGFX_HUB75 : public lgfx::LGFX_Device
   struct Panel_Custom_HUB75 : public lgfx::Panel_HUB75
   {
 // X 座標が8ドット単位で逆順になる場合の対策が必要な場合はこのoverrideを有効にする
-/*
+
     void _draw_pixel_inner(uint_fast16_t x, uint_fast16_t y, uint32_t rawcolor) override
     {
       Panel_HUB75::_draw_pixel_inner((x & 8) ? x : (x ^ 7), y, rawcolor);
@@ -42,30 +42,60 @@ struct LGFX_HUB75 : public lgfx::LGFX_Device
     {
       auto cfg = _bus_instance.config();
       cfg.port = 1;
+   /*   
+HUB75 Standard set RGB configuration
+     +-+-+
+   R1|o|o|G1
+   G1|o|o|GND
+   R2|o|o|G2
+   G2 o|o|GND
+   A  o|o|B
+   C |o|o|D
+  CLK|o|o|LAT
+   OE|o|o|GND
+     +-+-+
 
-#ifdef  PANEL_64x32
+HUB75E + BRG panel set BRG configuration
+     +-+-+
+   B1|o|o|R1
+   G1|o|o|GND
+   B2|o|o|R2
+   G2 o|o|E
+   A  o|o|B
+   C |o|o|D
+  CLK|o|o|LAT
+   OE|o|o|GND
+     +-+-+
+
+some panel has no D,E line, please set RGB configuration
+     +-+-+
+   R1|o|o|G1
+   G1|o|o|GND
+   R2|o|o|G2
+   G2 o|o|GND
+   A  o|o|B
+   C |o|o|D
+  CLK|o|o|LAT
+   OE|o|o|GND
+     +-+-+
+     
+*/
+   
+   // RGB configuration
       cfg.pin_r1 = GPIO_NUM_33; // R1
       cfg.pin_r2 = GPIO_NUM_18; // R2
       cfg.pin_g1 = GPIO_NUM_32; // G1
       cfg.pin_g2 = GPIO_NUM_19; // G2
       cfg.pin_b1 = GPIO_NUM_25; // B1
       cfg.pin_b2 = GPIO_NUM_5 ; // B2
-#elif defined PANEL_128x64   // 128/64パネル用
-      cfg.pin_r1 = GPIO_NUM_33; // R1
-      cfg.pin_r2 = GPIO_NUM_18; // R2
-      cfg.pin_g1 = GPIO_NUM_32; // G1
-      cfg.pin_g2 = GPIO_NUM_19 ; // G2
-      cfg.pin_b1 = GPIO_NUM_25; // B1
-      cfg.pin_b2 = GPIO_NUM_5; // B2
-#else     // new 128x64
-      cfg.pin_r1 = GPIO_NUM_25; // R1 32
-      cfg.pin_r2 = GPIO_NUM_5;  // R2 19
-      cfg.pin_g1 = GPIO_NUM_32; // G1 25 
-      cfg.pin_g2 = GPIO_NUM_19 ;// G2 5
+  /*/ // BRG configuration
+      cfg.pin_r1 = GPIO_NUM_32; // R1
+      cfg.pin_r2 = GPIO_NUM_19; // R2
+      cfg.pin_g1 = GPIO_NUM_25; // G1
+      cfg.pin_g2 = GPIO_NUM_5 ; // G2
       cfg.pin_b1 = GPIO_NUM_33; // B1
       cfg.pin_b2 = GPIO_NUM_18; // B2
-
-#endif
+  //*/
       cfg.pin_lat = GPIO_NUM_17; // LAT
       cfg.pin_oe  = GPIO_NUM_16; // OE
       cfg.pin_clk = GPIO_NUM_4 ; // CLK
@@ -80,8 +110,12 @@ struct LGFX_HUB75 : public lgfx::LGFX_Device
       cfg.refresh_rate = 200;
 
       // パネルの行選択の仕様に応じて指定する
-      cfg.address_mode = cfg.address_shiftreg;
-      // cfg.address_mode = cfg.address_binary;
+      //cfg.address_mode = cfg.address_shiftreg;
+      cfg.address_mode = cfg.address_binary;
+
+      // LEDドライバの初期化コマンドを指定する
+      // cfg.initialize_mode = cfg.initialize_none;
+      cfg.initialize_mode = cfg.initialize_fm6124;
 
       // DMA用のタスクの優先度 (FreeRTOSのタスク機能を使用)
       cfg.task_priority = 1;
@@ -99,13 +133,9 @@ struct LGFX_HUB75 : public lgfx::LGFX_Device
 
       // ここでパネルサイズを指定する
       // 複数枚並べる場合は全体の縦横サイズを指定
-#ifdef PANEL_64x32
       cfg.memory_width  = cfg.panel_width  = 64;
       cfg.memory_height = cfg.panel_height = 32;
-#else 
-      cfg.memory_width  = cfg.panel_width  = 128;
-      cfg.memory_height = cfg.panel_height =  64;
-#endif
+
       _panel_instance.config(cfg);
       setPanel(&_panel_instance);
     }
@@ -125,7 +155,6 @@ struct LGFX_HUB75 : public lgfx::LGFX_Device
     }
   }
 };
-
 
 LGFX_HUB75 gfx;
 
