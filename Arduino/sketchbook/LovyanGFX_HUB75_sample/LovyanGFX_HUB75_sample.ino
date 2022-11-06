@@ -26,15 +26,53 @@ struct LGFX_HUB75 : public lgfx::LGFX_Device
     {
       auto cfg = _bus_instance.config();
       cfg.port = 1;
+   /*   
+HUB75 Standard set RGB configuration
+     +-+-+
+   R1|o|o|G1
+   G1|o|o|GND
+   R2|o|o|G2
+   G2 o|o|GND
+   A  o|o|B
+   C |o|o|D
+  CLK|o|o|LAT
+   OE|o|o|GND
+     +-+-+
 
-  /* // 64x32パネル用
+HUB75E + BRG panel set BRG configuration
+     +-+-+
+   B1|o|o|R1
+   G1|o|o|GND
+   B2|o|o|R2
+   G2 o|o|E
+   A  o|o|B
+   C |o|o|D
+  CLK|o|o|LAT
+   OE|o|o|GND
+     +-+-+
+
+some panel has no D,E line, please set RGB configuration
+     +-+-+
+   R1|o|o|G1
+   G1|o|o|GND
+   R2|o|o|G2
+   G2 o|o|GND
+   A  o|o|B
+   C |o|o|D
+  CLK|o|o|LAT
+   OE|o|o|GND
+     +-+-+
+     
+*/
+   
+   // RGB configuration
       cfg.pin_r1 = GPIO_NUM_33; // R1
       cfg.pin_r2 = GPIO_NUM_18; // R2
       cfg.pin_g1 = GPIO_NUM_32; // G1
       cfg.pin_g2 = GPIO_NUM_19; // G2
       cfg.pin_b1 = GPIO_NUM_25; // B1
       cfg.pin_b2 = GPIO_NUM_5 ; // B2
-  /*/ // 128/64パネル用
+  /*/ // BRG configuration
       cfg.pin_r1 = GPIO_NUM_32; // R1
       cfg.pin_r2 = GPIO_NUM_19; // R2
       cfg.pin_g1 = GPIO_NUM_25; // G1
@@ -56,8 +94,12 @@ struct LGFX_HUB75 : public lgfx::LGFX_Device
       cfg.refresh_rate = 200;
 
       // パネルの行選択の仕様に応じて指定する
-      cfg.address_mode = cfg.address_shiftreg;
-      // cfg.address_mode = cfg.address_binary;
+      //cfg.address_mode = cfg.address_shiftreg;
+      cfg.address_mode = cfg.address_binary;
+
+      // LEDドライバの初期化コマンドを指定する
+      // cfg.initialize_mode = cfg.initialize_none;
+      cfg.initialize_mode = cfg.initialize_fm6124;
 
       // DMA用のタスクの優先度 (FreeRTOSのタスク機能を使用)
       cfg.task_priority = 1;
@@ -75,8 +117,8 @@ struct LGFX_HUB75 : public lgfx::LGFX_Device
 
       // ここでパネルサイズを指定する
       // 複数枚並べる場合は全体の縦横サイズを指定
-      cfg.memory_width  = cfg.panel_width  = 128;
-      cfg.memory_height = cfg.panel_height = 64;
+      cfg.memory_width  = cfg.panel_width  = 64;
+      cfg.memory_height = cfg.panel_height = 32;
 
       _panel_instance.config(cfg);
       setPanel(&_panel_instance);
@@ -107,7 +149,7 @@ void fm6124init(void) {
     auto cfg = gfx._bus_instance.config();
 
 
-    bool REG1[16] = {0,0,0,0,0, 0,1,1,1,1,1, 0,0,0,0,0};    // this sets global matrix brightness power
+    bool REG1[16] = {0,0,0,0,0, 1,1,1,1,1,1, 0,0,0,0,0};    // this sets global matrix brightness power
     bool REG2[16] = {0,0,0,0,0, 0,0,0,0,1,0, 0,0,0,0,0};    // a single bit enables the matrix output
     for (uint8_t _pin:{ cfg.pin_r1
                       , cfg.pin_r2
@@ -172,10 +214,10 @@ size_t PIXELS_PER_ROW = 128;
 void setup() {
 
 // LEDドライバのレジスタ設定
-// fm6124init();
+fm6124init();
 
   gfx.init();
-  gfx.setBrightness(90);
+  gfx.setBrightness(255);
 
   int w = gfx.width();
   int h = gfx.height() >> 3;
