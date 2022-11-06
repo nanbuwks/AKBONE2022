@@ -4,20 +4,9 @@
 #include <lgfx/v1/panel/Panel_HUB75.hpp>
 #include <lgfx/v1/platforms/esp32/Bus_HUB75.hpp>
 
-
-#include <Wire.h>
-#include <Adafruit_Sensor.h>
-#include <Adafruit_BME280.h>
-
-
 #define PANEL_64x32
 //#define   PANEL_128x64
-//#define   PANEL_128x64_NEW
-Adafruit_BME280 bme;
 
-float temp;
-float pressure;
-float humi;
 
 struct LGFX_HUB75 : public lgfx::LGFX_Device
 {
@@ -33,8 +22,7 @@ struct LGFX_HUB75 : public lgfx::LGFX_Device
 //*/
   };
 
-
-  Panel_Custom_HUB75 _panel_instance;
+Panel_Custom_HUB75 _panel_instance;
   lgfx::Bus_HUB75 _bus_instance;
 
   LGFX_HUB75(void)
@@ -114,8 +102,8 @@ some panel has no D,E line, please set RGB configuration
       cfg.address_mode = cfg.address_binary;
 
       // LEDドライバの初期化コマンドを指定する
-      // cfg.initialize_mode = cfg.initialize_none;
-      cfg.initialize_mode = cfg.initialize_fm6124;
+      cfg.initialize_mode = cfg.initialize_none;
+      //cfg.initialize_mode = cfg.initialize_fm6124;
 
       // DMA用のタスクの優先度 (FreeRTOSのタスク機能を使用)
       cfg.task_priority = 1;
@@ -157,9 +145,8 @@ some panel has no D,E line, please set RGB configuration
 };
 
 LGFX_HUB75 gfx;
-
 //===========================================================
-//	clearLED() ： clear LED panel
+//  clearLED() ： clear LED panel
 //===========================================================
 void clearLED()
 {
@@ -170,67 +157,135 @@ void clearLED()
   gfx.setTextScroll(true);
   gfx.setTextColor(TFT_WHITE, TFT_BLACK);
   gfx.setTextSize(1.0, 1.0);
-
 }
-
-
-
 //===========================================================
-//	drawLGFX() ： LCD Draw Test
+//  drawFile() ： Draw BMP File to LCD
 //===========================================================
-void drawenvironment()
+bool drawFile(const char *filename)
+{
+  bool ret = false;
+  int err_count = 0;
+  Serial.println("Start Drawing BMP File");
+  delay(1000);
+  do {
+    ret = gfx.drawBmpFile(SPIFFS, filename,0 ,0);
+    if (err_count++ > 10) {
+          Serial.println("File not EXIST!");
+      break;
+    }
+  } while (!ret);
+  return ret;
+}
+//===========================================================
+//  lcdTest() ： LCD Draw Test
+//===========================================================
+void lcdTest(void)
+{
+  delay(2000);
+  gfx.setCursor(0, 0);
+  gfx.setFont(&fonts::Font0);
+  gfx.setTextSize(1.0, 1.0);
+  gfx.setTextColor(TFT_WHITE, TFT_BLACK);
+  gfx.println("AKBONE2022 1234567890");
+  gfx.setTextColor(TFT_RED, TFT_BLACK);
+  gfx.println("AKBONE2022 1234567890");
+  gfx.setTextColor(TFT_GREEN, TFT_BLACK);
+  gfx.println("AKBONE2022 1234567890");
+  gfx.setTextColor(TFT_BLUE, TFT_BLACK);
+  gfx.println("AKBONE2022 1234567890");
+}
+//===========================================================
+//  drawLowLevel() ： LCD Draw Test
+//===========================================================
+void drawLowLevel()
+{
+  clearLED();
+  int pos_x;
+  int pos_y = 0;
+  int diff;
+#if defined(PANEL_64x32)
+  pos_x = 33;
+  diff = 8;
+  gfx.setFont(&fonts::Font0);
+#else
+  pos_x = 65;
+  diff = 16;
+  gfx.setFont(&fonts::Font2);
+  gfx.setTextSize(1.5, 1.0);
+#endif  
+  gfx.setTextColor(TFT_WHITE, TFT_BLACK);
+  gfx.setCursor(pos_x, pos_y);
+  gfx.print("LOW");
+  gfx.setTextColor(TFT_RED, TFT_BLACK);
+  gfx.setCursor(pos_x, pos_y += diff);
+  gfx.print("LEVEL");
+  gfx.setTextColor(TFT_GREEN, TFT_BLACK);
+  gfx.setCursor(pos_x,pos_y += diff);
+  gfx.print("STUDY");
+  gfx.setTextColor(TFT_BLUE, TFT_BLACK);
+  gfx.setCursor(pos_x,pos_y += diff);
+  gfx.print("GROUP");
+  gfx.drawBmpFile(SPIFFS, "/low.bmp",0 ,0);
+}
+//===========================================================
+//  drawLGFX() ： LCD Draw Test
+//===========================================================
+void drawLGFX()
 {
   int pos_y;
   int diff;
-  
-  temp=bme.readTemperature();
-  pressure=bme.readPressure() / 100.0F;
-  humi=bme.readHumidity();
-
-
-  
   clearLED();
 #if defined(PANEL_64x32)
   pos_y = 0;
-  diff = 11;
+  diff = 16;
   gfx.setFont(&fonts::Font2);
-  gfx.setTextSize(1.0, 1.0);
+  gfx.setTextSize(0.95, 1.0);
   pos_y = 0;
 #else
-  pos_y = -5;
-  diff = 20;
-//  gfx.setFont(&fonts::lgfxJapanMincho_8FreeSansOblique12pt7b);
-  gfx.setFont(&fonts::lgfxJapanGothicP_24);
-  gfx.setTextSize(0.9, 1.0);
+  pos_y = 4;
+  diff = 32;
+  gfx.setFont(&fonts::FreeSansOblique12pt7b);
+  //gfx.setTextSize(1.5, 1.0);
 #endif  
   gfx.setTextWrap(false);
-  gfx.setTextColor(TFT_RED, TFT_BLACK);
+  gfx.setTextColor(TFT_BLUE, TFT_BLACK);
   gfx.setCursor(0, pos_y);
-  gfx.printf("TEMP:%f ℃",temp);
-  gfx.setTextSize(1.0, 1.0);
+  gfx.println("Powered by");
   gfx.setCursor(0, pos_y += diff);
-  gfx.setTextColor(TFT_BLUE);
-  gfx.printf("HUMI: %f \%",humi);
-  gfx.setCursor(0, pos_y += diff);
-  gfx.setTextColor(TFT_GREEN);
-  gfx.println("1002.3 Hp");
+  gfx.setTextColor(TFT_RED);
+  gfx.println("LovyanGFX");
 }
-
 void setup() {
   Serial.begin(115200);
+  if(!SPIFFS.begin()){
+      Serial.println("Card Mount Failed");
+      return;
+  }    
   gfx.init();
-  gfx.setBrightness(200);
+  gfx.setBrightness(128);
   gfx.setColorDepth(16);
-  bool status;
-  status = bme.begin(0x76);  
-  while (!status) {
-    Serial.println("BME280 fail!");
-    delay(1000);
-  }
+//#ifdef PANEL_P4
+//  gfx.createSprite(64, 32); // パネルの面積
+// #else
+//  gfx.createSprite(128, 64); // パネルの面積
+//#endif
 }
-
 void loop() {
-
-  drawenvironment();
+  //lcdTest();
+#if defined(PANEL_64x32)
+  gfx.drawPngFile(SPIFFS, "/avtokyo_64x32.png",0 ,0);
+#else
+  gfx.drawPngFile(SPIFFS, "/avtokyo.png",0 ,0);
+#endif  
+  delay(5000);
+  drawLowLevel();
+  delay(5000);
+#if defined(PANEL_64x32)
+  gfx.drawPngFile(SPIFFS, "/akbone_64x32_B.png",0 ,0);
+#else
+  gfx.drawPngFile(SPIFFS, "/akbone2022.png",0 ,0);
+#endif
+  delay(5000);
+  drawLGFX();
   delay(5000);
 }
