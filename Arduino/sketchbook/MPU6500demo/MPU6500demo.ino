@@ -7,6 +7,11 @@
 #define PANEL_64x32
 // #define PANEL_128x64
 
+#include <MPU6500_WE.h>
+#include <Wire.h>
+#define MPU6500_ADDR 0x68
+MPU6500_WE myMPU6500 = MPU6500_WE(MPU6500_ADDR);
+
 struct LGFX_HUB75 : public lgfx::LGFX_Device
 {
   struct Panel_Custom_HUB75 : public lgfx::Panel_HUB75
@@ -97,12 +102,12 @@ some panel has no D,E line, please set RGB configuration
       cfg.refresh_rate = 200;
 
       // パネルの行選択の仕様に応じて指定する
-      //cfg.address_mode = cfg.address_shiftreg;
+      // cfg.address_mode = cfg.address_shiftreg;
       cfg.address_mode = cfg.address_binary;
 
       // LEDドライバの初期化コマンドを指定する
-       cfg.initialize_mode = cfg.initialize_none;
-      //cfg.initialize_mode = cfg.initialize_fm6124;
+      cfg.initialize_mode = cfg.initialize_none;
+      // cfg.initialize_mode = cfg.initialize_fm6124;
 
       // DMA用のタスクの優先度 (FreeRTOSのタスク機能を使用)
       cfg.task_priority = 1;
@@ -144,35 +149,115 @@ some panel has no D,E line, please set RGB configuration
 };
 
 LGFX_HUB75 gfx;
+static LGFX_Sprite sprite(&gfx);
+static LGFX_Sprite sprite2(&sprite);
+#if defined(PANEL_64x32)
+  const lgfx::IFont* font1 = &fonts::efontJA_12;
+  const lgfx::IFont* font2 = &fonts::Font0;
+  const lgfx::IFont* font3 = &fonts::TomThumb;
+  float textsizex=1.0;
+  float textsizey=0.95;
+#else
+  const lgfx::IFont* font1 = &fonts::efontJA_24;
+  const lgfx::IFont* font2 = &fonts::Font4;
+  const lgfx::IFont* font3 = &fonts::Font2;
+  float textsizex=1.0;
+  float textsizey=0.95;
+#endif
 
-#define CLK_PULSE          digitalWrite(cfg.pin_clk, HIGH); digitalWrite(cfg.pin_clk, LOW);
 
 void setup() {
-
-// LEDドライバのレジスタ設定
-//fm6124init();
-
-  gfx.init();
+  Serial.begin(115200);
   gfx.setBrightness(255);
+#if defined(PANEL_64x32)
+  sprite.createSprite(64,32);
+#else
+  sprite.createSprite(128,64);
+#endif
+  sprite2.createSprite(20,20);
+  sprite2.fillRect(5,5,10,10,65535);
 
-  int w = gfx.width();
-  int h = gfx.height() >> 3;
-  for (int x = 0; x < w; ++x) {
-    int c1 = (x << 8) / w;
-    int c2 = 255 - c1;
-    gfx.drawFastVLine(x, 0 * h, h, gfx.color565(c1,  0,  0));
-    gfx.drawFastVLine(x, 1 * h, h, gfx.color565(c2,  0,  0));
-    gfx.drawFastVLine(x, 2 * h, h, gfx.color565( 0, c1,  0));
-    gfx.drawFastVLine(x, 3 * h, h, gfx.color565( 0, c2,  0));
-    gfx.drawFastVLine(x, 4 * h, h, gfx.color565( 0,  0, c1));
-    gfx.drawFastVLine(x, 5 * h, h, gfx.color565( 0,  0, c2));
-    gfx.drawFastVLine(x, 6 * h, h, gfx.color565(c1, c1, c1));
-    gfx.drawFastVLine(x, 7 * h, h, gfx.color565(c2, c2, c2));
+  Wire.begin(22,21);
+  gfx.init();
+  if(!myMPU6500.init()){
+    Serial.println("MPU6500 does not respond");
   }
-  delay(2000);
-}
+  else{
+    Serial.println("MPU6500 is connected");
+  }
+  Serial.println("Position you MPU6500 flat and don't move it - calibrating...");
+  //gfx.setTextDatum( textdatum_t::baseline_center );
+  gfx.setFont(font1);
+  gfx.setTextSize(textsizex, textsizey);
+  gfx.setTextWrap(true);
+  gfx.setTextColor(0xAAAAFFU, TFT_BLACK);
+  gfx.setCursor(0,0);
+  gfx.println("画面を上にして静置してください");
+  delay(3000);
+  myMPU6500.autoOffsets();
+  delay(1000);
 
+
+  Serial.println("Done!");
+  myMPU6500.enableGyrDLPF();
+  myMPU6500.setGyrDLPF(MPU6500_DLPF_6);
+  myMPU6500.setSampleRateDivider(5);
+  myMPU6500.setGyrRange(MPU6500_GYRO_RANGE_250);
+  myMPU6500.enableAccDLPF(true); 
+  myMPU6500.setAccDLPF(MPU6500_DLPF_6);
+}
 void loop() {
-  delay(16);
-  gfx.fillCircle(rand()%gfx.width(), rand()%gfx.height(), (rand()&7)+3, rand());
+  static int i =0;
+  static float x = gfx.width()/2;
+  static float y = gfx.height()/2;
+  static float xv = 0;
+  static float yv = 0;
+  xyzFloat gValue = myMPU6500.getGValues();
+  xyzFloat gyr = myMPU6500.getGyrValues();
+  float temp = myMPU6500.getTemperature();
+  float resultantG = myMPU6500.getResultantG(gValue);
+
+  // ジャイロの取付向きで選択 AKBONE2022 を横長に配置
+  
+  xv = xv + gValue.y;
+  yv = yv - gValue.x;
+/*
+  // ジャイロの取付向きで選択 AKBONE2022 を縦長に配置
+  xv = xv + gValue.x;
+  yv = yv + gValue.y;
+*/
+  x = x+xv;
+  y = y+yv;
+  if ( x < 0 ) { x = 0; xv=0;}
+  if ( y < 0 ) { y = 0; yv=0;}
+  if ( gfx.width() < x ) { x = gfx.width(); xv=0;}
+  if ( gfx.height() < y ) { y = gfx.height(); yv=0; }
+  
+  Serial.println("Acceleration in g (x,y,z):");
+  Serial.print(gValue.x);
+  Serial.print("   ");
+  Serial.print(gValue.y);
+  Serial.print("   ");
+  Serial.println(gValue.z);
+  Serial.print("Resultant g: ");
+  Serial.println(resultantG);
+
+  Serial.println("Gyroscope data in degrees/s: ");
+  Serial.print(gyr.x);
+  Serial.print("   ");
+  Serial.print(gyr.y);
+  Serial.print("   ");
+  Serial.println(gyr.z);
+
+  Serial.print("Temperature in °C: ");
+  Serial.println(temp);
+
+  Serial.println("********************************************");
+
+  sprite2.setPivot(8, 8);
+  sprite2.pushRotateZoom(x, y, i, 1.0, 1.0);
+  sprite.pushSprite(0,0);
+  i++;
+  delay(100);
+  
 }
