@@ -215,7 +215,7 @@ void loop() {
  //    int size = fread(buffer,1,10000,file);     
       fp.close();
 //     gfx.drawPngFile(SD, filename, 0, 0);
-      gfx.drawPng(buffer, size, 0,0);
+//      gfx.drawPng(buffer, size, 0,0);
     }
   }
   /*
