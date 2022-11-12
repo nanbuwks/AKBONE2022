@@ -1,5 +1,4 @@
-/*
-#include "SdFat.h"
+/*#include "SdFat.h"
 SdFs sd;
 FsFile file;
 */
@@ -7,21 +6,23 @@ FsFile file;
 #include "SD.h" // LGFXより先に読み込む必要がある
 #include "SD_MMC.h"
 
+// video info
+#define FRAME_W 128
+#define FRAME_H 64
+#define FRAMEBUFF_SIZE FRAME_W*FRAME_H*2 
+#define FILENAME "/128x64.rgb"
+auto buffer = (uint8_t*)malloc(FRAMEBUFF_SIZE);
+
+//rgb565=buffer;
 #define LGFX_USE_V1
 #include <LovyanGFX.hpp>
 
 #include <lgfx/v1/panel/Panel_HUB75.hpp>
 #include <lgfx/v1/platforms/esp32/Bus_HUB75.hpp>
 
-#define PANEL_64x32
-// #define PANEL_128x64
+// #define PANEL_64x32
+#define PANEL_128x64
 
-
-
-#define VIDEO_WIDTH 64L
-#define VIDEO_HEIGHT 32L
-#define RGB565_FILENAME "/64x32.rgb"
-#define RGB565_BUFFER_SIZE (VIDEO_WIDTH * VIDEO_HEIGHT * 2)
 
 
 struct LGFX_HUB75 : public lgfx::LGFX_Device
@@ -29,7 +30,7 @@ struct LGFX_HUB75 : public lgfx::LGFX_Device
   struct Panel_Custom_HUB75 : public lgfx::Panel_HUB75
   {
 // X 座標が8ドット単位で逆順になる場合の対策が必要な場合はこのoverrideを有効にする
-
+/*
     void _draw_pixel_inner(uint_fast16_t x, uint_fast16_t y, uint32_t rawcolor) override
     {
       Panel_HUB75::_draw_pixel_inner((x & 8) ? x : (x ^ 7), y, rawcolor);
@@ -114,12 +115,12 @@ some panel has no D,E line, please set RGB configuration
       cfg.refresh_rate = 200;
 
       // パネルの行選択の仕様に応じて指定する
-      //cfg.address_mode = cfg.address_shiftreg;
-      cfg.address_mode = cfg.address_binary;
+       cfg.address_mode = cfg.address_shiftreg;
+      //cfg.address_mode = cfg.address_binary;
 
       // LEDドライバの初期化コマンドを指定する
-       cfg.initialize_mode = cfg.initialize_none;
-      //cfg.initialize_mode = cfg.initialize_fm6124;
+      // cfg.initialize_mode = cfg.initialize_none;
+      cfg.initialize_mode = cfg.initialize_fm6124;
 
       // DMA用のタスクの優先度 (FreeRTOSのタスク機能を使用)
       cfg.task_priority = 1;
@@ -137,8 +138,8 @@ some panel has no D,E line, please set RGB configuration
 
       // ここでパネルサイズを指定する
       // 複数枚並べる場合は全体の縦横サイズを指定
-      cfg.memory_width  = cfg.panel_width  = 64;
-      cfg.memory_height = cfg.panel_height = 32;
+      cfg.memory_width  = cfg.panel_width  = 128;
+      cfg.memory_height = cfg.panel_height = 64;
 
       _panel_instance.config(cfg);
       setPanel(&_panel_instance);
@@ -165,93 +166,43 @@ LGFX_HUB75 gfx;
 #define CLK_PULSE          digitalWrite(cfg.pin_clk, HIGH); digitalWrite(cfg.pin_clk, LOW);
 
 
-
-
-
-
 void setup() {
-
   Serial.begin(115200);
-
-// LEDドライバのレジスタ設定
-//fm6124init();
-
-  gfx.init();
-  gfx.setBrightness(255);
-
-
-
   Serial.println("setup done");
   delay(1000);
 }
 
 void loop() {
   char filename[50];
-  uint8_t buffer[10000];
   int size;
     /* test SD SPI Mode at HSPI */
   SPIClass spi = SPIClass(HSPI);
   spi.begin(13 /* SCK */, 35 /* MISO */, 23 /* MOSI */, 15 /* SS */);
   //sd.begin(13 /* SCK */, 35 /* MISO */, 23 /* MOSI */, 15 /* SS */);
   if (!SD.begin(15 /* SS */, spi, 80000000)) {
-  // if (!sd.begin(15 /* SS */, 80000000)) {
+//   if (!sd.begin(15 /* SS */, 16000000)) {
       Serial.println("Card Mount Failed");
       return;
   }
-  while (1){
-    
-    for ( int i=1; i<2587; i++){
-      sprintf(filename,"/64x32_%04d.png",i);
-      Serial.println(filename);
-      File fp=SD.open(filename);
-      if (!fp){
-        Serial.println("---fail----");
-        continue;
-      }
-      size=0;
-      while (fp.available()){
-        buffer[size++]=uint8_t(fp.read());
-     }
- //    int size = fread(buffer,1,10000,file);     
-      fp.close();
-//     gfx.drawPngFile(SD, filename, 0, 0);
-//      gfx.drawPng(buffer, size, 0,0);
-    }
-  }
-  /*
-      File vFile = SD.open(RGB565_FILENAME);
-    // File vFile = SD_MMC.open(RGB565_FILENAME);
-    if (!vFile || vFile.isDirectory())
-    {
-      Serial.println(F("ERROR: Failed to open " RGB565_FILENAME " file for reading"));
-      gfx.println(F("ERROR: Failed to open " RGB565_FILENAME " file for reading"));
-    }
-    else
-    {
-      Serial.println(F("open " RGB565_FILENAME " file for reading"));
-      uint8_t *buf = (uint8_t *)malloc(RGB565_BUFFER_SIZE);
-      if (!buf)
-      {
-        Serial.println(F("buf malloc failed!"));
-      }
-      else
-      {
-        Serial.println(F("RGB565 video start"));
-        gfx.setAddrWindow((gfx.width() - VIDEO_WIDTH) / 2, (gfx.height() - VIDEO_HEIGHT) / 2, VIDEO_WIDTH, VIDEO_HEIGHT);
-        while (vFile.available())
-        {
-          // Read video
-          uint32_t len = vFile.read(buf, RGB565_BUFFER_SIZE);
 
-          // Play video
-          gfx.startWrite();
-          gfx.writePixels(buf, len,true);
-          gfx.endWrite();
-          gfx.display();
-        }
-        Serial.println(F("RGB565 video end"));
-        vFile.close();
-      }
+  gfx.init();
+  gfx.setBrightness(127);
+  gfx.setColorDepth(16);
+  
+  while (1){
+    sprintf(filename,FILENAME);
+    Serial.print(filename);
+    File fp=SD.open(filename);
+    if (!fp){
+      Serial.println("---fail----");
+      continue;
     }
-*/
+    for ( int i=1; fp.available(); i++){
+      size = fp.read(buffer,FRAMEBUFF_SIZE);     
+      Serial.println(String(i)+" "+String(size) + "bytes  " + String(millis()) + "ms ");
+     // gfx.setSwapBytes(true);
+      gfx.pushImage(0,0,FRAME_W,FRAME_H,(uint16_t *)buffer);
+    }
+    fp.close();
+  }
 }
