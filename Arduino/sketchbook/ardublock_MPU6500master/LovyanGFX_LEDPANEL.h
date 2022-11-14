@@ -1,42 +1,26 @@
-/*#include "SdFat.h"
-SdFs sd;
-FsFile file;
-*/
-#include "FS.h"
-#include "SD.h" // LGFXより先に読み込む必要がある
-#include "SD_MMC.h"
+#ifdef  PANEL_TEC-N3.051515-16A2
+#define PANEL_64x32
+#else
+#define PANEL_128x64
+#endif
 
-// video info
-#define FRAME_W 256
-#define FRAME_H 128
-#define FRAMEBUFF_SIZE FRAME_W*FRAME_H*2 
-#define FILENAME "/256x128F.rgb"
-auto buffer = (uint8_t*)malloc(FRAMEBUFF_SIZE);
-
-//rgb565=buffer;
 #define LGFX_USE_V1
 #include <LovyanGFX.hpp>
-
 #include <lgfx/v1/panel/Panel_HUB75.hpp>
 #include <lgfx/v1/platforms/esp32/Bus_HUB75.hpp>
-
-// #define PANEL_64x32
-#define PANEL_128x64
-
-
 
 struct LGFX_HUB75 : public lgfx::LGFX_Device
 {
   struct Panel_Custom_HUB75 : public lgfx::Panel_HUB75
   {
+#ifdef PANEL_TEC-N3.051515-16A2
 // X 座標が8ドット単位で逆順になる場合の対策が必要な場合はこのoverrideを有効にする
-/*
+
     void _draw_pixel_inner(uint_fast16_t x, uint_fast16_t y, uint32_t rawcolor) override
     {
       Panel_HUB75::_draw_pixel_inner((x & 8) ? x : (x ^ 7), y, rawcolor);
-   // Panel_HUB75::_draw_pixel_inner((x & 8) ? (x ^ 7) : x, y, rawcolor);
     }
-//*/
+#endif
   };
 
   Panel_Custom_HUB75 _panel_instance;
@@ -112,16 +96,21 @@ some panel has no D,E line, please set RGB configuration
       cfg.pin_addr_e = GPIO_NUM_2;
 
       // 1秒間の更新回数を設定
-      cfg.refresh_rate = 100;
+      cfg.refresh_rate = 200;
 
       // パネルの行選択の仕様に応じて指定する
-       cfg.address_mode = cfg.address_shiftreg;
-      //cfg.address_mode = cfg.address_binary;
+#ifdef PANEL_TEC-N3.051515-16A2
+      cfg.address_mode = cfg.address_binary;
+#else
+      cfg.address_mode = cfg.address_shiftreg;
+#endif
 
       // LEDドライバの初期化コマンドを指定する
-      // cfg.initialize_mode = cfg.initialize_none;
+#ifdef PANEL_TEC-N3.051515-16A2
+      cfg.initialize_mode = cfg.initialize_none;
+#else
       cfg.initialize_mode = cfg.initialize_fm6124;
-
+#endif
       // DMA用のタスクの優先度 (FreeRTOSのタスク機能を使用)
       cfg.task_priority = 1;
 
@@ -138,9 +127,13 @@ some panel has no D,E line, please set RGB configuration
 
       // ここでパネルサイズを指定する
       // 複数枚並べる場合は全体の縦横サイズを指定
-      cfg.memory_width  = cfg.panel_width  = 256;
-      cfg.memory_height = cfg.panel_height = 128;
-
+#ifdef PANEL_64x32
+      cfg.memory_width  = cfg.panel_width  = 64;
+      cfg.memory_height = cfg.panel_height = 32;
+#else
+      cfg.memory_width  = cfg.panel_width  = 128;
+      cfg.memory_height = cfg.panel_height = 64;
+#endif
       _panel_instance.config(cfg);
       setPanel(&_panel_instance);
     }
@@ -148,61 +141,31 @@ some panel has no D,E line, please set RGB configuration
       auto cfg = _panel_instance.config_detail();
 
       // 構成パネルの総枚数を指定
-      cfg.panel_count = 4;
+      cfg.panel_count = 1;
 
       // 横方向のパネル枚数を指定
-      cfg.x_panel_count = 2;
+      cfg.x_panel_count = 1;
 
       // 縦方向のパネル枚数を指定
-      cfg.y_panel_count = 2;
+      cfg.y_panel_count = 1;
 
       _panel_instance.config_detail(cfg);
     }
   }
 };
-
 LGFX_HUB75 gfx;
-
-#define CLK_PULSE          digitalWrite(cfg.pin_clk, HIGH); digitalWrite(cfg.pin_clk, LOW);
-
-
-void setup() {
-  Serial.begin(115200);
-  Serial.println("setup done");
-  delay(1000);
-}
-
-void loop() {
-  char filename[50];
-  int size;
-    /* test SD SPI Mode at HSPI */
-  SPIClass spi = SPIClass(HSPI);
-  spi.begin(13 /* SCK */, 35 /* MISO */, 23 /* MOSI */, 15 /* SS */);
-  //sd.begin(13 /* SCK */, 35 /* MISO */, 23 /* MOSI */, 15 /* SS */);
-  if (!SD.begin(15 /* SS */, spi, 80000000)) {
-//   if (!sd.begin(15 /* SS */, 16000000)) {
-      Serial.println("Card Mount Failed");
-      return;
-  }
-
-  gfx.init();
-  gfx.setBrightness(127);
-  gfx.setColorDepth(16);
-  
-  while (1){
-    sprintf(filename,FILENAME);
-    Serial.print(filename);
-    File fp=SD.open(filename);
-    if (!fp){
-      Serial.println("---fail----");
-      continue;
-    }
-    for ( int i=1; fp.available(); i++){
-      size = fp.read(buffer,FRAMEBUFF_SIZE);     
-      Serial.println(String(i)+" "+String(size) + "bytes  " + String(millis()) + "ms ");
-     // gfx.setSwapBytes(true);
-      gfx.pushImage(0,0,FRAME_W,FRAME_H,(uint16_t *)buffer);
-    }
-    fp.close();
-  }
-}
+static LGFX_Sprite sprite(&gfx);
+static LGFX_Sprite sprite2(&sprite);
+#if defined(PANEL_64x32)
+  const lgfx::IFont* font1 = &fonts::efontJA_12;
+  const lgfx::IFont* font2 = &fonts::Font0;
+  const lgfx::IFont* font3 = &fonts::TomThumb;
+  float textsizex=1.0;
+  float textsizey=0.95;
+#else
+  const lgfx::IFont* font1 = &fonts::efontJA_24;
+  const lgfx::IFont* font2 = &fonts::Font4;
+  const lgfx::IFont* font3 = &fonts::Font2;
+  float textsizex=1.0;
+  float textsizey=0.95;
+#endif
