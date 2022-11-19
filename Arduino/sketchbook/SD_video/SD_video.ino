@@ -7,10 +7,10 @@ FsFile file;
 #include "SD_MMC.h"
 
 // video info
-#define FRAME_W 256
-#define FRAME_H 128
+#define FRAME_W 128
+#define FRAME_H 64
 #define FRAMEBUFF_SIZE FRAME_W*FRAME_H*2 
-#define FILENAME "/256x128F.rgb"
+#define FILENAME "/128x64F.rgb"
 auto buffer = (uint8_t*)malloc(FRAMEBUFF_SIZE);
 
 //rgb565=buffer;
@@ -37,10 +37,10 @@ struct LGFX_HUB75 : public lgfx::LGFX_Device
 
   lgfx::Bus_HUB75 _bus_instance;
 // 1枚だけで使用する場合はこちら
-//  lgfx::Panel_HUB75 _panel_instance;
+  lgfx::Panel_HUB75 _panel_instance;
 
 // 2枚以上接続する場合はこちら
- lgfx::Panel_HUB75_Multi _panel_instance;
+// lgfx::Panel_HUB75_Multi _panel_instance;
 
  
   LGFX_HUB75(void)
@@ -116,7 +116,7 @@ some panel has no D,E line, please set RGB configuration
       cfg.pin_addr_e = GPIO_NUM_2;
 
       // 1秒間の更新回数を設定
-      cfg.refresh_rate = 52;
+      cfg.refresh_rate = 300;
 
       // パネルの行選択の仕様に応じて指定する
        cfg.address_mode = cfg.address_shiftreg;
@@ -142,15 +142,15 @@ some panel has no D,E line, please set RGB configuration
 
       // ここでパネルサイズを指定する
       // 複数枚並べる場合は全体の縦横サイズを指定
-      /*/  ----- 1枚構成  
+      //  ----- 1枚構成  ここから
       cfg.memory_width  = cfg.panel_width  = 128;
       cfg.memory_height = cfg.panel_height = 64;
 
       _panel_instance.config(cfg);
       setPanel(&_panel_instance);
-      */
+      //*/ 1枚構成 ここまで
       
-      /* 複数枚構成 */
+      /* 複数枚構成 ここから 
       
       cfg.memory_width  = cfg.panel_width  = 256;
       cfg.memory_height = cfg.panel_height = 128;
@@ -177,8 +177,8 @@ some panel has no D,E line, please set RGB configuration
       _panel_instance.setPanelPosition( 0,  128,  0,2);
       _panel_instance.setPanelPosition( 2,  0,   64);
       _panel_instance.setPanelPosition( 3,  128,  64);
-    
-      //*/ 複数枚構成 ここまで
+      */
+      // 複数枚構成 ここまで
 
     }
 
@@ -194,7 +194,7 @@ void setup() {
   Serial.begin(115200);
     //gfx.setColorDepth(8);
   gfx.init();
-  gfx.setBrightness(180);
+  gfx.setBrightness(128);
   gfx.setColorDepth(16);
   Serial.println("setup done");
   delay(1000);
@@ -227,7 +227,8 @@ void loop() {
       Serial.println(String(i)+" "+String(size) + "bytes  " + String(millis()) + "ms ");
      // gfx.setSwapBytes(true);
       gfx.pushImage(0,0,FRAME_W,FRAME_H,(uint16_t *)buffer);
-      gfx._panel_instance.setPanelPosition( 3,  i,  64);
+     // 位置を変化するお遊び
+     // gfx._panel_instance.setPanelPosition( 3,  i,  64);
     }
     fp.close();
   }
