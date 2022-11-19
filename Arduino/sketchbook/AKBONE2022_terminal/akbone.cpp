@@ -107,7 +107,7 @@ void akbone_setup()
     //	setup for panel configration
     //-------------------------------------------------------
 #if defined (PANEL_DEPTH_8)
-    色深度は 8bit(RGB332)と 16bit(RGB565) が設定可能
+    //色深度は 8bit(RGB332)と 16bit(RGB565) が設定可能
     gfx.setColorDepth(8);
 #else 
     gfx.setColorDepth(16);
