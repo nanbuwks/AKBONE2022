@@ -5,17 +5,29 @@ FsFile file;
 #include "FS.h"
 #include "SD.h" // LGFXより先に読み込む必要がある
 #include "SD_MMC.h"
+#include "AudioFileSourceSD.h"
+#include "AudioFileSourceID3.h"
+#include "AudioGeneratorMP3.h"
+#include "AudioOutputI2S.h"
+
+AudioGeneratorMP3 *mp3;
+AudioFileSourceSD *file;
+AudioOutputI2S *out;
+AudioFileSourceID3 *id3;
 
 // video info
-#define FRAME_W 256
-#define FRAME_H 128
+#define FRAME_W 128
+#define FRAME_H 64
 #define FRAMEBUFF_SIZE FRAME_W*FRAME_H*2 
-#define FILENAME "/256x128F.rgb"
+#define FILENAME "/128x64F.rgb"
 auto buffer = (uint8_t*)malloc(FRAMEBUFF_SIZE);
 
 //rgb565=buffer;
 #define LGFX_USE_V1
 #include <LovyanGFX.hpp>
+
+#include <lgfx/v1/panel/Panel_HUB75.hpp>
+#include <lgfx/v1/platforms/esp32/Bus_HUB75.hpp>
 
 // #define PANEL_64x32
 #define PANEL_128x64
@@ -24,30 +36,24 @@ auto buffer = (uint8_t*)malloc(FRAMEBUFF_SIZE);
 
 struct LGFX_HUB75 : public lgfx::LGFX_Device
 {
-  static void convertCoordinate(uint_fast16_t &x, uint_fast16_t &y)
-  {/*
-    if (x & 8) { x = x ^ 7; }
-    */
-    if ( x < 256)
+  struct Panel_Custom_HUB75 : public lgfx::Panel_HUB75
+  {
+// X 座標が8ドット単位で逆順になる場合の対策が必要な場合はこのoverrideを有効にする
+/*
+    void _draw_pixel_inner(uint_fast16_t x, uint_fast16_t y, uint32_t rawcolor) override
     {
-      x = x ^ 127;
-      y = y ^ 63;
+      Panel_HUB75::_draw_pixel_inner((x & 8) ? x : (x ^ 7), y, rawcolor);
+   // Panel_HUB75::_draw_pixel_inner((x & 8) ? (x ^ 7) : x, y, rawcolor);
     }
-  }
+//*/
+  };
+
 
   lgfx::Bus_HUB75 _bus_instance;
-// 1枚だけで使用する場合はこちら
-//  lgfx::Panel_HUB75 _panel_instance;
-
-// 2枚以上接続する場合はこちら
- lgfx::Panel_HUB75_Multi _panel_instance;
-
+  lgfx::Panel_HUB75 _panel_instance;
  
   LGFX_HUB75(void)
   {
-    // X 座標が8ドット単位で逆順になるパネルの場合、座標変換関数を使用するよう指定する
-   // _panel_instance.convertCoordinate = convertCoordinate;
-    
     {
       auto cfg = _bus_instance.config();
       cfg.port = 1;
@@ -116,7 +122,7 @@ some panel has no D,E line, please set RGB configuration
       cfg.pin_addr_e = GPIO_NUM_2;
 
       // 1秒間の更新回数を設定
-      cfg.refresh_rate = 52;
+      cfg.refresh_rate = 465;
 
       // パネルの行選択の仕様に応じて指定する
        cfg.address_mode = cfg.address_shiftreg;
@@ -142,16 +148,7 @@ some panel has no D,E line, please set RGB configuration
 
       // ここでパネルサイズを指定する
       // 複数枚並べる場合は全体の縦横サイズを指定
-      /*/  ----- 1枚構成  
-      cfg.memory_width  = cfg.panel_width  = 128;
-      cfg.memory_height = cfg.panel_height = 64;
-
-      _panel_instance.config(cfg);
-      setPanel(&_panel_instance);
-      */
-      
-      /* 複数枚構成 */
-      
+      /*
       cfg.memory_width  = cfg.panel_width  = 256;
       cfg.memory_height = cfg.panel_height = 128;
 
@@ -164,22 +161,19 @@ some panel has no D,E line, please set RGB configuration
       // 構成パネルの総枚数を指定
       cfg.panel_count = 4;
 
-      // パネル1枚の幅を指定
-      cfg.single_width = 128;
+      // 横方向のパネル枚数を指定
+      cfg.x_panel_count = 2;
 
-      // パネル1枚の高さを指定
-      cfg.single_height = 64;
+      // 縦方向のパネル枚数を指定
+      cfg.y_panel_count = 2;
 
       _panel_instance.config_detail(cfg);
+      */
+      cfg.memory_width  = cfg.panel_width  = 128;
+      cfg.memory_height = cfg.panel_height = 64;
 
-      // 各パネルの配置座標を設定する
-      _panel_instance.setPanelPosition( 1,   0,   0,2);
-      _panel_instance.setPanelPosition( 0,  128,  0,2);
-      _panel_instance.setPanelPosition( 2,  0,   64);
-      _panel_instance.setPanelPosition( 3,  128,  64);
-    
-      //*/ 複数枚構成 ここまで
-
+      _panel_instance.config(cfg);
+      setPanel(&_panel_instance);
     }
 
   }
@@ -194,7 +188,7 @@ void setup() {
   Serial.begin(115200);
     //gfx.setColorDepth(8);
   gfx.init();
-  gfx.setBrightness(180);
+  gfx.setBrightness(255);
   gfx.setColorDepth(16);
   Serial.println("setup done");
   delay(1000);
@@ -227,7 +221,6 @@ void loop() {
       Serial.println(String(i)+" "+String(size) + "bytes  " + String(millis()) + "ms ");
      // gfx.setSwapBytes(true);
       gfx.pushImage(0,0,FRAME_W,FRAME_H,(uint16_t *)buffer);
-      gfx._panel_instance.setPanelPosition( 3,  i,  64);
     }
     fp.close();
   }
