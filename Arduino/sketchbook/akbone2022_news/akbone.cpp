@@ -21,7 +21,7 @@ enum { sd_sck = 13, sd_miso = 35, sd_mosi = 23, sd_ss = 15 };
     RotaryEncoder encoder(SW_A, SW_B, RotaryEncoder::LatchMode::FOUR0);
     volatile int16_t encoder_pos  = 0;
     volatile int16_t sw1_count    = 0;
-    volatile bool sw1_pressed  = 0;
+    volatile bool sw1_pressed  = false;
 #endif
 #if defined(USE_BME280)
     #include <Adafruit_Sensor.h>
@@ -38,8 +38,23 @@ enum { sd_sck = 13, sd_miso = 35, sd_mosi = 23, sd_ss = 15 };
     #define MPU6500_ADDR 0x68
     MPU6500_WE myMPU6500 = MPU6500_WE(MPU6500_ADDR);
 #endif
+#if defined(USE_SCROLLTEXT)
+  #if defined(PANEL_128x64)
+    #define FONT          &fonts::lgfxJapanMincho_40
+    #define FONT_SIZE     64
+    #define FONT_MULTI   1.6
+    #define SPRITE_SIZE  128
+  #else
+    #define FONT          &fonts::lgfxJapanMincho_32
+    #define FONT_SIZE     32
+    #define SPRITE_SIZE   64
+    #define FONT_MULTI    1.0
+  #endif
+#endif
+
 
 LGFX_HUB75 gfx;
+static lgfx::LGFX_Sprite cBuf;      // ex [64 * 64] Buffer
 
 #if defined(USE_ENCODER)
 //===========================================================
@@ -60,8 +75,9 @@ void check_button()
 
     if (value == 0) {
         sw1_count++;
-        if (sw1_count > SW1_COUNT) {
+        if (sw1_count == SW1_COUNT) {
             sw1_pressed = true;
+            Serial.println("SW1 Pressed!");
         } 
     } else {
         sw1_count = 0;
@@ -156,9 +172,20 @@ void akbone_setup()
         Serial.println("MPU6500 does not respond");
     }
     else{
-        Serial.println("MPU6500 is connected");
+        //Serial.println("MPU6500 is connected");
     }    
 #endif
+    //-------------------------------------------------------
+    //	 setup for scrollText
+    //-------------------------------------------------------
+#if defined(USE_SCROLLTEXT)
+    cBuf.createSprite(SPRITE_SIZE + FONT_SIZE, FONT_SIZE);
+    cBuf.setTextSize(FONT_MULTI, FONT_MULTI);
+    cBuf.setFont(FONT);       
+    cBuf.setTextWrap(false);
+    cBuf.setTextColor(TFT_YELLOW, TFT_BLUE);
+#endif
+
 }
 
 //===========================================================
@@ -179,8 +206,8 @@ void clearLED()
     gfx.setFont(&fonts::Font0);
     gfx.setCursor(0, 0);
     gfx.fillScreen(TFT_BLACK);
-    //gfx.setTextWrap(false);
-    gfx.setTextWrap(true);
+    gfx.setTextWrap(false);
+    //gfx.setTextWrap(true);
     gfx.setTextScroll(true);
     gfx.setScrollRect(0, 0, gfx.width(), gfx.height());
     gfx.setTextColor(TFT_BLUE, TFT_BLACK);
@@ -452,17 +479,21 @@ void read_mpu6500(float& acc_x, float& acc_y, float& acc_z, float& gyr_x, float&
 //===========================================================
 void disp_mpu6500()
 {
-    uint16_t    pos_y;
+    uint16_t    start_y, pos_y;
 #if defined(PANEL_64x32)
+    const lgfx::IFont* font0 = &fonts::Font0;
     const lgfx::IFont* font1 = &fonts::efontJA_12;
     float textsizex=1.0;
     float textsizey=0.95;
+    start_y = 8;
     pos_y = 10;
 #else
+    const lgfx::IFont* font0 = &fonts::Font0;
     const lgfx::IFont* font1 = &fonts::efontJA_16;
     float textsizex=1.0;
     float textsizey=1.0;
-    pos_y = 20;
+    start_y = 12;
+    pos_y = 16;
 #endif    
     char  buf[32];
     float acc_x, acc_y, acc_z;
@@ -471,6 +502,13 @@ void disp_mpu6500()
     float tanG;
 
     clearLED();
+    gfx.setFont(font0);
+    gfx.setTextSize(textsizex, textsizey);
+    gfx.setTextWrap(false);
+    gfx.setTextColor(TFT_WHITE, TFT_BLUE);
+    gfx.setCursor(0, 0);
+    gfx.print("*** MPU6500 TEST  ***");
+
     read_mpu6500(acc_x, acc_y, acc_z, gyr_x, gyr_y, gyr_z, temp, tanG);
 /*
     Serial.println("Acceleration in g (x,y,z):");
@@ -490,21 +528,21 @@ void disp_mpu6500()
 
     gfx.setTextColor(TFT_WHITE, TFT_BLACK);
 
-    gfx.setCursor(0, 0);
+    gfx.setCursor(0, start_y);
     gfx.setTextColor(TFT_BLUE);
     gfx.printf("X:%5.2f", acc_x);
-    gfx.setCursor(0, pos_y);
+    gfx.setCursor(0, start_y + pos_y * 1);
     gfx.printf("Y:%5.2f", acc_y);
-    gfx.setCursor(0, pos_y * 2);
+    gfx.setCursor(0, start_y + pos_y * 2);
     gfx.printf("Z:%5.2f", acc_z);
 
-    gfx.setCursor(64, 0);
+    gfx.setCursor(56, start_y);
     gfx.setTextColor(TFT_RED);
-    gfx.printf("GX:%5.2f", gyr_x);
-    gfx.setCursor(64, pos_y);
-    gfx.printf("GY:%5.2f", gyr_y);
-    gfx.setCursor(64, pos_y * 2);
-    gfx.printf("GZ:%5.2f", gyr_z);
+    gfx.printf("GX:%6.2f", gyr_x);
+    gfx.setCursor(56, start_y + pos_y * 1);
+    gfx.printf("GY:%6.2f", gyr_y);
+    gfx.setCursor(56, start_y + pos_y * 2);
+    gfx.printf("GZ:%6.2f", gyr_z);
 }
 #endif
 #if defined (USE_TFCARD)  
@@ -537,6 +575,7 @@ void disp_imgfile()
     gfx.setTextSize(0.99, 1.0);
     gfx.setCursor(64,48);
     gfx.print("GROUP");
+    delay(5000);
 }
 #endif
 #if defined(USE_ENCODER)
@@ -566,14 +605,15 @@ bool read_button()
 //	menu function
 //===========================================================
 #if defined(USE_MENU)
-#define MENU_NUM 5 + 1
+#define MENU_NUM 6 + 1
 const char *menu_str[MENU_NUM] = {
     "",
-    "1.PANEL TEST         ",
-    "2.DISP IMAGE FILE    ",
-    "3.DISP WEATHER       ",
-    "4.DISP DATE/TIME     ",
-    "5.DISP 6AXIS IMU     "
+    "1.LOOP TEST          ",
+    "2.DISP SCROLL TEXT   ",
+    "3.DISP IMAGE FILE    ",
+    "4.DISP WEATHER       ",
+    "5.DISP DATE/TIME     ",
+    "6.DISP 6AXIS IMU     "
 };
 
 int16_t encoder_old = -32768;
@@ -596,7 +636,7 @@ uint16_t disp_menu(uint16_t mode)
             pos = MENU_NUM - 1;
         }
         _menu(pos);
-        delay(10);
+        delay(100);
     }
     return pos;
 }
@@ -613,12 +653,12 @@ static void _menu(uint16_t mode)
     const lgfx::IFont* font1 = &fonts::Font0;
     float textsizex=1.0;
     float textsizey=1.0;
-    pos_y = 10;
+    pos_y = 6;
 #else
     const lgfx::IFont* font1 = &fonts::Font0;
     float textsizex=1.0;
     float textsizey=1.0;
-    pos_y = 10;
+    pos_y = 9;
 #endif
     if (mode == 0 ) {    
         clearLED();
@@ -627,7 +667,7 @@ static void _menu(uint16_t mode)
         gfx.setTextWrap(false);
         gfx.setTextColor(TFT_WHITE, TFT_BLUE);
         gfx.setCursor(0, 0);
-        gfx.print("** AKBONE2020 MENU **");
+        gfx.print("** AKBONE2022 MENU **");
 
         gfx.setTextColor(TFT_WHITE, TFT_BLACK);
         gfx.setCursor(0, 0);
@@ -655,6 +695,46 @@ static void _menu(uint16_t mode)
             gfx.print(menu_str[old_mode]);
         }
         old_mode = mode;
+    }
+}
+#endif
+
+#if defined(USE_SCROLLTEXT)
+//String str = "◇AKBONE2022 Break Out News - ◇秘密結社オープンフォースの河野総統は、AKB2022+HUB75 LEDパネルをAVTOKYO2022で発表した。◇AKB2022のグラフィックライブラリにはLovyanGFXを使用、漢字表示や高速な描画を実現。◇搭載しているセンサモジュールは、BME280、MPU6500、およびReal Time Clock。◇Linux ボードとして、Sipeed Lichee Nanoを搭載。◇2023年1月 BitTradeOneより発売予定！";
+static size_t textlen = 0;
+static size_t textpos = 0;
+//===========================================================
+//	_menu()
+//===========================================================
+void disp_scrollText(String str, uint16_t dly)
+{
+    bool first = true;
+
+    clearLED();
+    Serial.println("Start scrollText!");
+    //=====================================================================
+    // 文字列をスクロール表示
+    //=====================================================================
+    textlen = str.length();
+    while(1) {
+        int32_t cursor_x = cBuf.getCursorX() - 1;   // 現在のカーソル位置を取得し、1ドット左に移動
+        if (cursor_x <= 0) // カーソル位置が左端に到達している場合は一周したと判断
+        {
+            textpos = 0;            // 文字列の読取り位置をリセット
+            cursor_x = gfx.width(); // 新たな文字が画面右端に描画されるようにカーソル位置を変更
+            if (!first) break;
+            first = false;
+        }
+        cBuf.setCursor(cursor_x, 0); // カーソル位置を更新
+        cBuf.scroll(-1, 0);          // キャンバスの内容を1ドット左にスクロール
+        while (textpos < textlen && cursor_x <= gfx.width()) // 画面右端に文字が書けるか判定
+        {
+            //Serial.print(str[textpos]);
+            cBuf.print(str[textpos++]);   // 1バイトずつ出力 (マルチバイト文字でもこの処理で動作します)
+            cursor_x = cBuf.getCursorX();  // 出力後のカーソル位置を取得
+        }
+        cBuf.pushSprite(&gfx, 0, 0);
+        delay(dly);
     }
 }
 #endif

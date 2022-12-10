@@ -2,7 +2,7 @@
 // AKBONE2022 common library
 // V0.0 2022.11.06 K.Ohe New Create
 // V0.2 2022.11.17 K.Ohe Support Multi Panel
-
+// V0.3 2022.12.10 K.Ohe for P3 2nd panel
 #define  LGFX_USE_V1
 #include <LovyanGFX.hpp>
 
@@ -22,9 +22,9 @@
 //
 //#define PANEL_P2_1st
 //#define PANEL_P2_2nd
-#define PANEL_P2_3rd
+//#define PANEL_P2_3rd
 //#define PANEL_P3_1st
-//#define PANEL_P3_2nd
+#define PANEL_P3_2nd
 //#define PANEL_P3_3rd
 //#define PANEL_P4_1st
 
@@ -32,11 +32,13 @@
 //  select panel type and configration
 //
 //#define PANEL_MULTI         // Multi panel support 
-#define PANEL_DEPTH_8       // RGB332
-//#define PANEL_DEPTH_16        // RGB565
+//#define PANEL_DEPTH_8       // RGB332
+#define PANEL_DEPTH_16        // RGB565
 #define PANEL_BRIGHTNESS     160
-#define PANEL_REFRESH_RATE   300
+//#define PANEL_REFRESH_RATE   300
 //#define PANEL_REFRESH_RATE  80
+//#define PANEL_WRITE_FREQ 20000000L
+#define PANEL_WRITE_FREQ 16000000L
 
 //
 //  select functions
@@ -49,6 +51,7 @@
 //#define USE_RTC
 //#define USE_BME280
 //#define USE_MENU
+#define USE_SCROLLTEXT
 
 //===========================================================
 //	prototypes
@@ -72,6 +75,7 @@ extern void disp_imgfile(void);
 extern int16_t read_encoder(void);
 extern bool read_button(void);
 extern uint16_t disp_menu(uint16_t mode = 0);
+extern void disp_scrollText(String str, uint16_t dly = 1);
 
 //===========================================================
 //	defines
@@ -154,7 +158,7 @@ struct LGFX_HUB75 : public lgfx::LGFX_Device {
     // 座標を8ドット単位で逆順にする関数
     static void convertCoordinate(uint_fast16_t &x, uint_fast16_t &y)
     {
-        if (x & 8) { x = x ^ 7; }
+        if (!(x & 8)) { x = x ^ 7; }
     }
     lgfx::Bus_HUB75 _bus_instance;
 
@@ -219,7 +223,8 @@ struct LGFX_HUB75 : public lgfx::LGFX_Device {
         #endif
 
             // 1秒間の更新回数を設定
-            cfg.refresh_rate = PANEL_REFRESH_RATE;
+            //cfg.refresh_rate = PANEL_REFRESH_RATE;
+            cfg.freq_write = PANEL_WRITE_FREQ;
 
         #if defined(YADDRESS_MODE_SHIFTREG)
             cfg.address_mode = cfg.address_shiftreg;
@@ -227,12 +232,17 @@ struct LGFX_HUB75 : public lgfx::LGFX_Device {
             cfg.address_mode = cfg.address_binary;
         #endif
 
+            // LEDドライバチップの種類を指定する
         #if defined(LED_INIT_FM6124)
             //  FM6124のレジスタを設定 
-            cfg.initialize_mode = cfg.initialize_fm6124;
+            //cfg.initialize_mode = cfg.initialize_fm6124;
+            cfg.led_driver = cfg.led_driver_FM6124;
         #else
-            cfg.initialize_mode = cfg.initialize_none;
+            //cfg.initialize_mode = cfg.initialize_none;
+            cfg.led_driver = cfg.led_driver_standard;
         #endif
+
+
             // DMA用のタスクの優先度 (FreeRTOSのタスク機能を使用)
             cfg.task_priority = 2;
 
